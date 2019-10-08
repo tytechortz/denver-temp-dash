@@ -148,41 +148,41 @@ def max_stats(product, d_max_max, admaxh, d_min_max):
     admaxh = admaxh
     dly_min_max = d_min_max
     print(dly_max_max)
-    
-    return html.Div([
-        html.Div([
-            html.H6('Maximum Temperatures', style={'text-align':'center', 'color':'red'})
-        ]),
-        html.Div([
+    if product == 'climate-for-day':
+        return html.Div([
+            html.Div([
+                html.H6('Maximum Temperatures', style={'text-align':'center', 'color':'red'})
+            ]),
             html.Div([
                 html.Div([
-                    html.H6('Maximum', style={'text-align':'center', 'color': 'red'}),
-                    html.H6('{}'.format(dly_max_max), style={'text-align':'center'})
+                    html.Div([
+                        html.H6('Maximum', style={'text-align':'center', 'color': 'red'}),
+                        html.H6('{}'.format(dly_max_max), style={'text-align':'center'})
+                    ],
+                        className='round1 four columns'
+                    ),
+                    html.Div([
+                        html.H6('Average', style={'text-align':'center', 'color': 'red'}),
+                        html.H6('{:.0f}'.format(admaxh), style={'text-align':'center'})
+                    ],
+                        className='round1 four columns'
+                    ),
+                    html.Div([
+                        html.H6('Minimum', style={'text-align':'center', 'color': 'red'}),
+                        html.H6('{}'.format(dly_min_max), style={'text-align':'center'})
+                    ],
+                        className='round1 four columns'
+                    ),
                 ],
-                    className='round1 four columns'
-                ),
-                html.Div([
-                    html.H6('Average', style={'text-align':'center', 'color': 'red'}),
-                    html.H6('{:.0f}'.format(admaxh), style={'text-align':'center'})
-                ],
-                    className='round1 four columns'
-                ),
-                html.Div([
-                    html.H6('Minimum', style={'text-align':'center', 'color': 'red'}),
-                    html.H6('{}'.format(dly_min_max), style={'text-align':'center'})
-                ],
-                    className='round1 four columns'
+                    className='row'
                 ),
             ],
-                className='row'
+                className='pretty_container'
             ),
+                
         ],
-            className='pretty_container'
+            # className='twelve columns'
         ),
-            
-    ],
-        # className='twelve columns'
-    ),
 
 @app.callback(
             Output('daily-min-t', 'children'),
@@ -194,41 +194,41 @@ def min_stats(product, d_min_min, adminl, d_max_min):
     dly_min_min = d_min_min
     adminl = adminl
     dly_max_min = d_max_min
-   
-    return html.Div([
-        html.Div([
-            html.H6('Minimum Temperatures', style={'text-align':'center', 'color':'blue'})
-        ]),
-        html.Div([
+    if product == 'climate-for-day':
+        return html.Div([
+            html.Div([
+                html.H6('Minimum Temperatures', style={'text-align':'center', 'color':'blue'})
+            ]),
             html.Div([
                 html.Div([
-                    html.H6('Minimum', style={'text-align':'center', 'color': 'blue'}),
-                    html.H6('{}'.format(dly_min_min), style={'text-align':'center'})
+                    html.Div([
+                        html.H6('Minimum', style={'text-align':'center', 'color': 'blue'}),
+                        html.H6('{}'.format(dly_min_min), style={'text-align':'center'})
+                    ],
+                        className='round1 four columns'
+                    ),
+                    html.Div([
+                        html.H6('Average', style={'text-align':'center', 'color': 'blue'}),
+                        html.H6('{:.0f}'.format(adminl), style={'text-align':'center'})
+                    ],
+                        className='round1 four columns'
+                    ),
+                    html.Div([
+                        html.H6('Maximum', style={'text-align':'center', 'color': 'blue'}),
+                        html.H6('{}'.format(dly_max_min), style={'text-align':'center'})
+                    ],
+                        className='round1 four columns'
+                    ),
                 ],
-                    className='round1 four columns'
-                ),
-                html.Div([
-                    html.H6('Average', style={'text-align':'center', 'color': 'blue'}),
-                    html.H6('{:.0f}'.format(adminl), style={'text-align':'center'})
-                ],
-                    className='round1 four columns'
-                ),
-                html.Div([
-                    html.H6('Maximum', style={'text-align':'center', 'color': 'blue'}),
-                    html.H6('{}'.format(dly_max_min), style={'text-align':'center'})
-                ],
-                    className='round1 four columns'
+                    className='row'
                 ),
             ],
-                className='row'
+                className='pretty_container'
             ),
+                
         ],
-            className='pretty_container'
+            # className='twelve columns'
         ),
-            
-    ],
-        # className='twelve columns'
-    ),
 
 @app.callback([
     Output('datatable-interactivity', 'data'),
