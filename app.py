@@ -11,3 +11,4 @@ import pandas as pd
 from numpy import arange,array,ones
 from scipy import stats 
 import psycopg2
+
