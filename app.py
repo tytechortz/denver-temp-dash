@@ -56,7 +56,7 @@ def get_layout():
                             {'label':'Climatology for a day', 'value':'climate-for-day'},
                             {'label':'5 Year Moving Avgs', 'value':'fyma-graph'},
                         ],
-                        value='temp-graph',
+                        # value='temp-graph',
                         labelStyle={'display': 'block'},
                     ),
                 ],
@@ -274,12 +274,13 @@ def display_period_selector(product_value):
     Output('year-picker', 'children'),
     [Input('product', 'value')])
 def display_year_selector(product_value):
-    return html.P('Enter Year (YYYY)') ,dcc.Input(
-                id = 'year',
-                type = 'number',
-                # value = str(current_year),
-                min = 1950, max = current_year
-            )
+    if product_value == 'temp-graph':
+        return html.P('Enter Year (YYYY)') ,dcc.Input(
+                    id = 'year',
+                    type = 'number',
+                    # value = str(current_year),
+                    min = 1950, max = current_year
+                )
 
 
 @app.callback(Output('graph1', 'figure'),
@@ -449,12 +450,11 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
 
 @app.callback(Output('fyma-graph', 'figure'),
              [Input('temp-param', 'value'),
-             Input('year', 'value'),
              Input('df5', 'children'),
              Input('max-trend', 'children'),
              Input('min-trend', 'children'),
              Input('all-data', 'children')])
-def update_fyma_graph(selected_param, selected_year, df_5, max_trend, min_trend, all_data):
+def update_fyma_graph(selected_param, df_5, max_trend, min_trend, all_data):
     # print(all_data)
     fyma_temps = pd.read_json(all_data)
     fyma_temps['Date']=fyma_temps['Date'].dt.strftime("%Y-%m-%d") 
