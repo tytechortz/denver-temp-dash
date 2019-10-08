@@ -83,9 +83,27 @@ app.layout = html.Div(
         ],
             className='row'
         ),
+        html.Div([
+            html.Div([
+                html.Div(
+                    id='graph1'
+                ),
+            ],
+                 className='eight columns'
+            ),    
+        ],
+            className='row'
+        ),
+        
         html.Div(id='all-data', style={'display': 'none'}),
     ]
 )
+@app.callback(
+    Output('graph1', 'children'),
+    [Input('product', 'value')])
+def display_graph(value):
+    if value == 'temp-graph':
+        return dcc.Graph(id='graph1')
 
 @app.callback(Output('all-data', 'children'),
             [Input('product', 'value')])
