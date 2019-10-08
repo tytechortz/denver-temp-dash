@@ -12,4 +12,24 @@ from numpy import arange,array,ones
 from scipy import stats 
 import psycopg2
 
-print(all_temps)
+
+app = dash.Dash(__name__)
+app.config['suppress_callback_exceptions']=True
+# print(all_temps)
+
+app.layout = html.Div(
+    [
+        html.Div([
+            html.H1(
+                'DENVER TEMPERATURE RECORD',
+                className='twelve columns',
+                style={'text-align': 'center'}
+            ),
+        ],
+            className='row'
+        ),
+    ]
+)
+
+if __name__ == "__main__":
+    app.run_server(port=8050, debug=True)
