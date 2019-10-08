@@ -90,6 +90,31 @@ def get_layout():
             ],
                 className='row'
             ),
+            html.Div([
+            html.Div([
+                html.Div(
+                    id='climate-day-table'
+                ),
+            ],
+                className='five columns'
+            ),
+            html.Div([
+                html.Div([
+                    html.Div(id='daily-max-t'),
+                ],
+                    className='twelve columns'
+                ),
+                html.Div([
+                    html.Div(id='daily-min-t'),
+                ],
+                    className='twelve columns'
+                ), 
+            ],
+                className='seven columns'
+            ),     
+        ],
+            className='row'
+        ),
             
             html.Div(id='all-data', style={'display': 'none'}),
             html.Div(id='rec-highs', style={'display': 'none'}),
@@ -108,6 +133,114 @@ def get_layout():
 app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
+
+@app.callback(
+    Output('datatable-interactivity-container', 'children'),
+    [Input('datatable-interactivity', 'derived_virtual_data'),
+    Input('datatable-interactivity', 'derived_virtual_selected_rows'),
+    Input('product', 'value')])
+def update_graphs(rows, derived_virtual_selected_rows, value):
+    if value == 'climate-for-day':
+        if derived_virtual_selected_rows is None:
+            derived_virtual_selected_rows = []
+
+        dff = pd.DataFrame(rows)
+       
+        colors = ['#7FDBFF' if i in derived_virtual_selected_rows else '#0074D9'
+                for i in range(len(dff))]
+        
+        return [
+            dcc.Graph(
+                id=column,
+                figure={
+                    'data': [
+                        {
+                            "x": dff['Date'],
+                            "y": dff[column],
+                            "type": "bar",
+                            # "marker": {"color": colors},
+                            "marker": {"color": colors},
+                        }
+                    ],
+                    "layout": {
+                        "xaxis": {"automargin": True},
+                        "yaxis": {
+                            "automargin": True,
+                            "title": {"text": dff[column]}
+                        },
+                        "height": 250,
+                        "margin": {"t": 10, "l": 10, "r": 10},
+                    },
+                },
+            )
+            for column in ['TMAX','TMIN'] 
+        ]
+
+@app.callback([
+    Output('datatable-interactivity', 'data'),
+    Output('datatable-interactivity', 'columns'),
+    Output('daily-max-temp', 'children'),
+    Output('avg-of-dly-highs', 'children'),
+    Output('daily-high-min', 'children')],
+    [Input('all-data', 'children'),
+    Input('date', 'value')])
+def display_climate_day_table(all_data, date):
+    dr = pd.read_json(all_data)
+    # dr['Date']=dr['Date'].dt.strftime("%Y-%m-%d") 
+    dr.set_index(['Date'], inplace=True)
+    dr = dr[(dr.index.month == int(date[5:7])) & (dr.index.day == int(date[8:10]))]
+    # dr = df_all_temps[(df_all_temps['Date'][5:7] == date[5:7]) & (df_all_temps['Date'][8:10] == date[8:10])]
+    dr = dr.reset_index()
+    columns=[
+        {"name": i, "id": i,"selectable": True} for i in dr.columns
+    ]
+    
+    dr['Date'] = dr['Date'].dt.strftime('%Y-%m-%d')
+    daily_max_t = dr['TMAX'].max()
+    avg_of_dly_highs = dr['TMAX'].mean()
+    daily_record_high_min = dr['TMAX'].min()
+    print(avg_of_dly_highs)
+
+    return dr.to_dict('records'), columns, daily_max_t, avg_of_dly_highs, daily_record_high_min
+
+@app.callback(
+    Output('climate-day-table', 'children'),
+    [Input('product', 'value')])
+def display_climate_stuff(value):
+    if value == 'climate-for-day':
+        return dt.DataTable(id='datatable-interactivity',
+        data=[{}], 
+        columns=[{}], 
+        fixed_rows={'headers': True, 'data': 0},
+        style_cell_conditional=[
+            {'if': {'column_id': 'Date'},
+            'width':'100px'},
+            {'if': {'column_id': 'TMAX'},
+            'width':'100px'},
+            {'if': {'column_id': 'TMIN'},
+            'width':'100px'},
+        ],
+        style_data_conditional=[
+            {
+            'if': {'row_index': 'odd'},
+            'backgroundColor': 'rgb(248, 248, 248)'
+            },
+        ],
+        style_header={
+        'backgroundColor': 'rgb(230, 230, 230)',
+        'fontWeight': 'bold'
+        },
+        # editable=True,
+        # filter_action="native",
+        sort_action="native",
+        sort_mode="multi",
+        column_selectable="single",
+        selected_columns=[],
+        selected_rows=[],
+        # page_action="native",
+        page_current= 0,
+        page_size= 10,
+        )
 
 @app.callback(
     Output('period-picker', 'children'),
@@ -157,7 +290,7 @@ def display_year_selector(product_value):
              Input('year', 'value'),
              Input('period', 'value')])
 def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
-    print(period)
+    # print(period)
     previous_year = int(selected_year) - 1
     selected_year = selected_year
     temps = pd.read_json(temp_data)
@@ -317,14 +450,15 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
 @app.callback(Output('fyma-graph', 'figure'),
              [Input('temp-param', 'value'),
              Input('year', 'value'),
+             Input('df5', 'children'),
              Input('all-data', 'children')])
-def update_fyma_graph(selected_param, selected_year, all_data):
-    print(all_data)
+def update_fyma_graph(selected_param, selected_year, df_5, all_data):
+    # print(all_data)
     fyma_temps = pd.read_json(all_data)
     fyma_temps['Date']=fyma_temps['Date'].dt.strftime("%Y-%m-%d") 
     fyma_temps.set_index(['Date'], inplace=True)
     df_5 = pd.read_json(df_5)
-    all_max_temp_fit = pd.DataFrame(max_trend)
+    # all_max_temp_fit = pd.DataFrame(max_trend)
 
     all_max_rolling = fyma_temps['TMAX'].dropna().rolling(window=1825)
     all_max_rolling_mean = all_max_rolling.mean()
@@ -336,7 +470,7 @@ def update_fyma_graph(selected_param, selected_year, all_data):
         trace = [
             go.Scatter(
                 y = all_max_rolling_mean,
-                x = temps.index,
+                x = fyma_temps.index,
                 name='Max Temp'
             ),
             # go.Scatter(
@@ -350,7 +484,7 @@ def update_fyma_graph(selected_param, selected_year, all_data):
         trace = [
             go.Scatter(
                 y = all_min_rolling_mean,
-                x = temps.index,
+                x = fyma_temps.index,
                 name='Min Temp'
             ),
     #         go.Scatter(
@@ -440,7 +574,7 @@ def display_climate_day_table(all_data, product_value):
     df_ya_max = df_date_index.resample('Y').mean()
     df5 = df_ya_max[:-1]
     df5 = df5.drop(['dow'], axis=1)
-    print(df5)
+    # print(df5)
     return df5.to_json(date_format='iso')
 
 @app.callback(
