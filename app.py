@@ -126,6 +126,9 @@ def get_layout():
             html.Div(id='min-trend', style={'display': 'none'}),
             html.Div(id='d-max-max', style={'display': 'none'}),
             html.Div(id='avg-of-dly-highs', style={'display': 'none'}),
+            html.Div(id='d-min-max', style={'display': 'none'}),
+            html.Div(id='d-min-min', style={'display': 'none'}),
+            html.Div(id='avg-of-dly-lows', style={'display': 'none'}),
             html.Div(id='d-max-min', style={'display': 'none'}),
         ]
     )
@@ -139,14 +142,17 @@ app.config['suppress_callback_exceptions']=True
             [Input('product', 'value'),
             Input('d-max-max', 'children'),
             Input('avg-of-dly-highs', 'children'),
-            Input('d-max-min', 'children')])
-def all_temps_cleaner(product, d_max_max, admaxh, d_max_min):
+            Input('d-min-max', 'children')])
+def max_stats(product, d_max_max, admaxh, d_min_max):
     dly_max_max = d_max_max
     admaxh = admaxh
-    dly_max_min = d_max_min
+    dly_min_max = d_min_max
     print(dly_max_max)
     
     return html.Div([
+        html.Div([
+            html.H6('Maximum Temperatures', style={'text-align':'center', 'color':'red'})
+        ]),
         html.Div([
             html.Div([
                 html.Div([
@@ -163,6 +169,52 @@ def all_temps_cleaner(product, d_max_max, admaxh, d_max_min):
                 ),
                 html.Div([
                     html.H6('Minimum', style={'text-align':'center', 'color': 'red'}),
+                    html.H6('{}'.format(dly_min_max), style={'text-align':'center'})
+                ],
+                    className='round1 four columns'
+                ),
+            ],
+                className='row'
+            ),
+        ],
+            className='pretty_container'
+        ),
+            
+    ],
+        # className='twelve columns'
+    ),
+
+@app.callback(
+            Output('daily-min-t', 'children'),
+            [Input('product', 'value'),
+            Input('d-min-min', 'children'),
+            Input('avg-of-dly-lows', 'children'),
+            Input('d-max-min', 'children')])
+def min_stats(product, d_min_min, adminl, d_max_min):
+    dly_min_min = d_min_min
+    adminl = adminl
+    dly_max_min = d_max_min
+   
+    return html.Div([
+        html.Div([
+            html.H6('Minimum Temperatures', style={'text-align':'center', 'color':'blue'})
+        ]),
+        html.Div([
+            html.Div([
+                html.Div([
+                    html.H6('Minimum', style={'text-align':'center', 'color': 'blue'}),
+                    html.H6('{}'.format(dly_min_min), style={'text-align':'center'})
+                ],
+                    className='round1 four columns'
+                ),
+                html.Div([
+                    html.H6('Average', style={'text-align':'center', 'color': 'blue'}),
+                    html.H6('{:.0f}'.format(adminl), style={'text-align':'center'})
+                ],
+                    className='round1 four columns'
+                ),
+                html.Div([
+                    html.H6('Maximum', style={'text-align':'center', 'color': 'blue'}),
                     html.H6('{}'.format(dly_max_min), style={'text-align':'center'})
                 ],
                     className='round1 four columns'
@@ -183,6 +235,9 @@ def all_temps_cleaner(product, d_max_max, admaxh, d_max_min):
     Output('datatable-interactivity', 'columns'),
     Output('d-max-max', 'children'),
     Output('avg-of-dly-highs', 'children'),
+    Output('d-min-max', 'children'),
+    Output('d-min-min', 'children'),
+    Output('avg-of-dly-lows', 'children'),
     Output('d-max-min', 'children')],
     [Input('all-data', 'children'),
     Input('date', 'date')])
@@ -204,10 +259,13 @@ def display_climate_day_table(all_data, selected_date):
     dr['Date'] = dr['Date'].dt.strftime('%Y-%m-%d')
     d_max_max = dr['TMAX'].max()
     avg_of_dly_highs = dr['TMAX'].mean()
-    d_max_min = dr['TMAX'].min()
+    d_min_max = dr['TMAX'].min()
     # print(avg_of_dly_highs)
+    d_min_min = dr['TMIN'].min()
+    avg_of_dly_lows = dr['TMIN'].mean()
+    d_max_min = dr['TMIN'].max()
 
-    return dr.to_dict('records'), columns, d_max_max, avg_of_dly_highs, d_max_min
+    return dr.to_dict('records'), columns, d_max_max, avg_of_dly_highs, d_min_max, d_min_min, avg_of_dly_lows, d_max_min  
 
 @app.callback(
     Output('climate-day-table', 'children'),
