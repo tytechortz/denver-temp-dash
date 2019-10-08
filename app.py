@@ -124,9 +124,9 @@ def get_layout():
             html.Div(id='df5', style={'display': 'none'}),
             html.Div(id='max-trend', style={'display': 'none'}),
             html.Div(id='min-trend', style={'display': 'none'}),
-            html.Div(id='daily-max-temp', style={'display': 'none'}),
+            html.Div(id='d-max-max', style={'display': 'none'}),
             html.Div(id='avg-of-dly-highs', style={'display': 'none'}),
-            html.Div(id='daily-high-min', style={'display': 'none'}),
+            html.Div(id='d-max-min', style={'display': 'none'}),
         ]
     )
 
@@ -134,74 +134,76 @@ app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
-@app.callback(
-    Output('datatable-interactivity-container', 'children'),
-    [Input('datatable-interactivity', 'derived_virtual_data'),
-    Input('datatable-interactivity', 'derived_virtual_selected_rows'),
-    Input('product', 'value')])
-def update_graphs(rows, derived_virtual_selected_rows, value):
-    if value == 'climate-for-day':
-        if derived_virtual_selected_rows is None:
-            derived_virtual_selected_rows = []
+# @app.callback(
+#     Output('datatable-interactivity-container', 'children'),
+#     [Input('datatable-interactivity', 'derived_virtual_data'),
+#     Input('datatable-interactivity', 'derived_virtual_selected_rows')])
+# def update_graphs(rows, derived_virtual_selected_rows):
+#     if derived_virtual_selected_rows is None:
+#         derived_virtual_selected_rows = []
 
-        dff = pd.DataFrame(rows)
-       
-        colors = ['#7FDBFF' if i in derived_virtual_selected_rows else '#0074D9'
-                for i in range(len(dff))]
-        
-        return [
-            dcc.Graph(
-                id=column,
-                figure={
-                    'data': [
-                        {
-                            "x": dff['Date'],
-                            "y": dff[column],
-                            "type": "bar",
-                            # "marker": {"color": colors},
-                            "marker": {"color": colors},
-                        }
-                    ],
-                    "layout": {
-                        "xaxis": {"automargin": True},
-                        "yaxis": {
-                            "automargin": True,
-                            "title": {"text": dff[column]}
-                        },
-                        "height": 250,
-                        "margin": {"t": 10, "l": 10, "r": 10},
-                    },
-                },
-            )
-            for column in ['TMAX','TMIN'] 
-        ]
+#     dff = pd.DataFrame(rows)
+    
+#     colors = ['#7FDBFF' if i in derived_virtual_selected_rows else '#0074D9'
+#             for i in range(len(dff))]
+    
+#     return [
+#         dcc.Graph(
+#             id=column,
+#             figure={
+#                 'data': [
+#                     {
+#                         "x": dff['Date'],
+#                         "y": dff[column],
+#                         "type": "bar",
+#                         # "marker": {"color": colors},
+#                         "marker": {"color": colors},
+#                     }
+#                 ],
+#                 "layout": {
+#                     "xaxis": {"automargin": True},
+#                     "yaxis": {
+#                         "automargin": True,
+#                         "title": {"text": dff[column]}
+#                     },
+#                     "height": 250,
+#                     "margin": {"t": 10, "l": 10, "r": 10},
+#                 },
+#             },
+#         )
+#         for column in ['TMAX','TMIN'] 
+#     ]
 
 @app.callback([
     Output('datatable-interactivity', 'data'),
     Output('datatable-interactivity', 'columns'),
-    Output('daily-max-temp', 'children'),
+    Output('d-max-max', 'children'),
     Output('avg-of-dly-highs', 'children'),
-    Output('daily-high-min', 'children')],
+    Output('d-max-min', 'children')],
     [Input('all-data', 'children'),
-    Input('date', 'value')])
-def display_climate_day_table(all_data, date):
+    Input('date', 'date')])
+def display_climate_day_table(all_data, selected_date):
     dr = pd.read_json(all_data)
+    
     # dr['Date']=dr['Date'].dt.strftime("%Y-%m-%d") 
     dr.set_index(['Date'], inplace=True)
-    dr = dr[(dr.index.month == int(date[5:7])) & (dr.index.day == int(date[8:10]))]
+    print(dr)
+    print(selected_date)
+    dr = dr[(dr.index.month == int(selected_date[5:7])) & (dr.index.day == int(selected_date[8:10]))]
     # dr = df_all_temps[(df_all_temps['Date'][5:7] == date[5:7]) & (df_all_temps['Date'][8:10] == date[8:10])]
     dr = dr.reset_index()
+    print(dr)
     columns=[
         {"name": i, "id": i,"selectable": True} for i in dr.columns
     ]
     
     dr['Date'] = dr['Date'].dt.strftime('%Y-%m-%d')
-    daily_max_t = dr['TMAX'].max()
+    d_max_max = dr['TMAX'].max()
     avg_of_dly_highs = dr['TMAX'].mean()
-    daily_record_high_min = dr['TMAX'].min()
+    d_max_min = dr['TMAX'].min()
     print(avg_of_dly_highs)
 
-    return dr.to_dict('records'), columns, daily_max_t, avg_of_dly_highs, daily_record_high_min
+    return dr.to_dict('records'), columns, d_max_max, avg_of_dly_highs, d_max_min
 
 @app.callback(
     Output('climate-day-table', 'children'),
@@ -271,10 +273,23 @@ def display_period_selector(product_value):
                 )
 
 @app.callback(
+    Output('date-picker', 'children'),
+    [Input('product', 'value')])
+    # Input('year', 'value')])
+def display_date_selector(product_value):
+    if product_value == 'climate-for-day':
+        return  html.P('Select Date (MM-DD)'), dcc.DatePickerSingle(
+                    id='date',
+                    display_format='MM-DD',
+                    date=today
+                )
+
+
+@app.callback(
     Output('year-picker', 'children'),
     [Input('product', 'value')])
 def display_year_selector(product_value):
-    if product_value == 'temp-graph':
+    if product_value == 'temp-graph' or 'climate-for-day':
         return html.P('Enter Year (YYYY)') ,dcc.Input(
                     id = 'year',
                     type = 'number',
@@ -465,7 +480,7 @@ def update_fyma_graph(selected_param, df_5, max_trend, min_trend, all_data):
     all_max_temp_fit = pd.DataFrame(max_trend)
     all_max_temp_fit.index = df_5.index
     all_max_temp_fit.index = all_max_temp_fit.index.strftime("%Y-%m-%d")
-    print(all_max_temp_fit)
+
     all_min_temp_fit = pd.DataFrame(min_trend)
     all_min_temp_fit.index = df_5.index
     all_min_temp_fit.index = all_min_temp_fit.index.strftime("%Y-%m-%d")
@@ -512,7 +527,6 @@ def update_fyma_graph(selected_param, df_5, max_trend, min_trend, all_data):
         height = 500,
     )
     return {'data': trace, 'layout': layout}
-
 
 
 @app.callback(
@@ -577,7 +591,7 @@ def norm_highs(selected_year):
     Output('df5', 'children'),
     [Input('all-data', 'children'),
     Input('product', 'value')])
-def display_climate_day_table(all_data, product_value):
+def clean_df5(all_data, product_value):
     title_temps = pd.read_json(all_data)
     title_temps['Date']=title_temps['Date'].dt.strftime("%Y-%m-%d")
     df_date_index = df_all_temps.set_index(['Date'])
