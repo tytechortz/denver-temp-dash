@@ -12,13 +12,7 @@ from numpy import arange,array,ones
 from scipy import stats 
 import psycopg2
 
-
-app = dash.Dash(__name__)
-app.config['suppress_callback_exceptions']=True
-
 df_all_temps = pd.DataFrame(all_temps,columns=['dow','sta','Date','TMAX','TMIN'])
-
-
 
 df_norms = pd.DataFrame(norm_records)
 
@@ -31,77 +25,129 @@ today = time.strftime("%Y-%m-%d")
 startyr = 1950
 year_count = current_year-startyr
 
-app.layout = html.Div(
-    [
-        html.Div([
-            html.H1(
-                'DENVER TEMPERATURE RECORD',
-                className='twelve columns',
-                style={'text-align': 'center'}
-            ),
-        ],
-            className='row'
-        ),
-        html.Div([
-            html.H4(
-                id='title-date-range',
-                className='twelve columns',
-                style={'text-align': 'center'}
-            ),
-        ],
-            className='row'
-        ),
-        html.Div([
+def get_layout():
+    return html.Div(
+        [
             html.Div([
-                html.Label('Select Product'),
-                dcc.RadioItems(
-                    id='product',
-                    options=[
-                        {'label':'Temperature graphs', 'value':'temp-graph'},
-                        {'label':'Climatology for a day', 'value':'climate-for-day'}
+                html.H1(
+                    'DENVER TEMPERATURE RECORD',
+                    className='twelve columns',
+                    style={'text-align': 'center'}
+                ),
+            ],
+                className='row'
+            ),
+            html.Div([
+                html.H4(
+                    id='title-date-range',
+                    className='twelve columns',
+                    style={'text-align': 'center'}
+                ),
+            ],
+                className='row'
+            ),
+            html.Div([
+                html.Div([
+                    html.Label('Select Product'),
+                    dcc.RadioItems(
+                        id='product',
+                        options=[
+                            {'label':'Temperature graphs', 'value':'temp-graph'},
+                            {'label':'Climatology for a day', 'value':'climate-for-day'},
+                            {'label':'5 Year Moving Avgs', 'value':'fyma-graph'},
+                        ],
+                        value='temp-graph',
+                        labelStyle={'display': 'block'},
+                    ),
+                ],
+                    className='three columns',
+                ),
+                html.Div([
+                    html.Label('Options'),
+                    html.Div(
+                        id='year-picker'
+                    ),
+                    html.Div(
+                        id='period-picker'
+                    ),
+                    html.Div(
+                        id='date-picker'
+                    ),
+                ],
+                    className='four columns',
+                ),  
+            ],
+                className='row'
+            ),
+            html.Div([
+                html.Div([
+                    html.Div(
+                        id='graph'
+                    ),
+                ],
+                    className='eight columns'
+                ),    
+            ],
+                className='row'
+            ),
+            
+            html.Div(id='all-data', style={'display': 'none'}),
+            html.Div(id='rec-highs', style={'display': 'none'}),
+            html.Div(id='rec-lows', style={'display': 'none'}),
+            html.Div(id='norms', style={'display': 'none'}),
+            html.Div(id='temp-data', style={'display': 'none'}),
+            html.Div(id='df5', style={'display': 'none'}),
+            html.Div(id='max-trend', style={'display': 'none'}),
+            html.Div(id='min-trend', style={'display': 'none'}),
+            html.Div(id='daily-max-temp', style={'display': 'none'}),
+            html.Div(id='avg-of-dly-highs', style={'display': 'none'}),
+            html.Div(id='daily-high-min', style={'display': 'none'}),
+        ]
+    )
+
+app = dash.Dash(__name__)
+app.layout = get_layout
+app.config['suppress_callback_exceptions']=True
+
+@app.callback(
+    Output('period-picker', 'children'),
+    [Input('product', 'value')])
+def display_period_selector(product_value):
+    if product_value == 'temp-graph':
+        return  dcc.RadioItems(
+                    id = 'period',
+                    options = [
+                        {'label':'Annual (Jan-Dec)', 'value':'annual'},
+                        {'label':'Winter (Dec-Feb)', 'value':'winter'},
+                        {'label':'Spring (Mar-May)', 'value':'spring'},
+                        {'label':'Summer (Jun-Aug)', 'value':'summer'},
+                        {'label':'Fall (Sep-Nov)', 'value':'fall'},
                     ],
-                    value='temp-graph',
-                    labelStyle={'display': 'block'},
-                ),
-            ],
-                className='three columns',
-            ),
-            html.Div([
-                html.Label('Options'),
-                html.Div(
-                    id='period-picker'
-                ),
-                html.Div(
-                    id='year-picker'
-                ),
-                html.Div(
-                    id='date-picker'
-                ),
-            ],
-                className='two-columns',
-            ),  
-        ],
-            className='row'
-        ),
-        html.Div([
-            html.Div([
-                html.Div(
-                    id='graph1'
-                ),
-            ],
-                 className='eight columns'
-            ),    
-        ],
-            className='row'
-        ),
-        
-        html.Div(id='all-data', style={'display': 'none'}),
-        html.Div(id='rec-highs', style={'display': 'none'}),
-        html.Div(id='rec-lows', style={'display': 'none'}),
-        html.Div(id='norms', style={'display': 'none'}),
-        html.Div(id='temp-data', style={'display': 'none'}),
-    ]
-)
+                    value = 'annual',
+                    labelStyle = {'display':'block'}
+                )
+    elif product_value == 'fyma-graph':
+        return  dcc.RadioItems(
+                    id = 'temp-param',
+                    options = [
+                        {'label':'Max Temp', 'value':'Tmax'},
+                        {'label':'Min Temp', 'value':'Tmin'},
+                    ],
+                    value = 'Tmax',
+                    labelStyle = {'display':'block'}
+                )
+
+@app.callback(
+    Output('year-picker', 'children'),
+    [Input('product', 'value')])
+def display_year_selector(product_value):
+    return html.P('Enter Year (YYYY)') ,dcc.Input(
+                id = 'year',
+                type = 'number',
+                # value = str(current_year),
+                min = 1950, max = current_year
+            )
+
 
 @app.callback(Output('graph1', 'figure'),
              [Input('temp-data', 'children'),
@@ -111,7 +157,7 @@ app.layout = html.Div(
              Input('year', 'value'),
              Input('period', 'value')])
 def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
-    print(selected_year)
+    print(period)
     previous_year = int(selected_year) - 1
     selected_year = selected_year
     temps = pd.read_json(temp_data)
@@ -268,42 +314,71 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
         )
     return {'data': trace, 'layout': layout}
 
-@app.callback(
-    Output('period-picker', 'children'),
-    [Input('product', 'value')])
-def display_period_selector(product_value):
-    if product_value == 'temp-graph':
-        return  dcc.RadioItems(
-                    id = 'period',
-                    options = [
-                        {'label':'Annual (Jan-Dec)', 'value':'annual'},
-                        {'label':'Winter (Dec-Feb)', 'value':'winter'},
-                        {'label':'Spring (Mar-May)', 'value':'spring'},
-                        {'label':'Summer (Jun-Aug)', 'value':'summer'},
-                        {'label':'Fall (Sep-Nov)', 'value':'fall'},
-                    ],
-                    value = 'annual',
-                    labelStyle = {'display':'block'}
-                )
+@app.callback(Output('fyma-graph', 'figure'),
+             [Input('temp-param', 'value'),
+             Input('year', 'value'),
+             Input('all-data', 'children')])
+def update_fyma_graph(selected_param, selected_year, all_data):
+    print(all_data)
+    fyma_temps = pd.read_json(all_data)
+    fyma_temps['Date']=fyma_temps['Date'].dt.strftime("%Y-%m-%d") 
+    fyma_temps.set_index(['Date'], inplace=True)
+    df_5 = pd.read_json(df_5)
+    all_max_temp_fit = pd.DataFrame(max_trend)
+
+    all_max_rolling = fyma_temps['TMAX'].dropna().rolling(window=1825)
+    all_max_rolling_mean = all_max_rolling.mean()
+
+    all_min_rolling = fyma_temps['TMIN'].dropna().rolling(window=1825)
+    all_min_rolling_mean = all_min_rolling.mean()
+
+    if selected_param == 'Tmax':
+        trace = [
+            go.Scatter(
+                y = all_max_rolling_mean,
+                x = temps.index,
+                name='Max Temp'
+            ),
+            # go.Scatter(
+            #     y = all_max_temp_fit(),
+            #     x = df5.index,
+            #     name = 'trend',
+            #     line = {'color':'red'}
+            # ),
+        ]
+    elif selected_param == 'Tmin':
+        trace = [
+            go.Scatter(
+                y = all_min_rolling_mean,
+                x = temps.index,
+                name='Min Temp'
+            ),
+    #         go.Scatter(
+    #             y = all_min_temp_fit(),
+    #             x = df5.index,
+    #             name = 'trend',
+    #             line = {'color':'red'}
+    #         ),
+        ]
+    layout = go.Layout(
+        xaxis = {'rangeslider': {'visible':True},},
+        yaxis = {"title": 'Temperature F'},
+        title ='5 Year Rolling Mean',
+        plot_bgcolor = 'lightgray',
+        height = 500,
+    )
+    return {'data': trace, 'layout': layout}
+
+
 
 @app.callback(
-    Output('year-picker', 'children'),
-    [Input('product', 'value')])
-def display_year_selector(product_value):
-    if product_value == 'temp-graph':
-        return html.P('Select Year') ,dcc.Input(
-                    id = 'year',
-                    type = 'number',
-                    value = str(current_year),
-                    min = 1950, max = current_year
-                )
-
-@app.callback(
-    Output('graph1', 'children'),
+    Output('graph', 'children'),
     [Input('product', 'value')])
 def display_graph(value):
     if value == 'temp-graph':
         return dcc.Graph(id='graph1')
+    elif value == 'fyma-graph':
+        return dcc.Graph(id='fyma-graph')
 
 @app.callback(Output('all-data', 'children'),
             [Input('product', 'value')])
@@ -320,7 +395,7 @@ def all_temps_cleaner(product_value):
             [Input('product', 'value'),
             Input('all-data', 'children')])
 def all_temps_cleaner(product, temps):
-    # print(product)
+    # print(temps)
     title_temps = pd.read_json(temps)
     title_temps['Date']=title_temps['Date'].dt.strftime("%Y-%m-%d")
     last_day = title_temps.iloc[-1, 0] 
@@ -354,6 +429,44 @@ def norm_highs(selected_year):
         norms = df_norms.drop(df_norms.index[59])
     return norms.to_json()
 
+@app.callback(
+    Output('df5', 'children'),
+    [Input('all-data', 'children'),
+    Input('product', 'value')])
+def display_climate_day_table(all_data, product_value):
+    title_temps = pd.read_json(all_data)
+    title_temps['Date']=title_temps['Date'].dt.strftime("%Y-%m-%d")
+    df_date_index = df_all_temps.set_index(['Date'])
+    df_ya_max = df_date_index.resample('Y').mean()
+    df5 = df_ya_max[:-1]
+    df5 = df5.drop(['dow'], axis=1)
+    print(df5)
+    return df5.to_json(date_format='iso')
+
+@app.callback(
+    Output('max-trend', 'children'),
+    [Input('df5', 'children'),
+    Input('product', 'value')])
+def all_max_trend(df_5, product_value):
+    
+    df5 = pd.read_json(df_5)
+    xi = arange(0,year_count)
+    slope, intercept, r_value, p_value, std_err = stats.linregress(xi,df5['TMAX'])
+
+    return (slope*xi+intercept)
+
+@app.callback(
+    Output('min-trend', 'children'),
+    [Input('df5', 'children'),
+    Input('product', 'value')])
+def all_min_trend(df_5, product_value):
+    
+    df5 = pd.read_json(df_5)
+    xi = arange(0,year_count)
+    slope, intercept, r_value, p_value, std_err = stats.linregress(xi,df5['TMIN'])
+    
+    return (slope*xi+intercept)
+
 @app.callback(Output('temp-data', 'children'),
              [Input('year', 'value'),
              Input('period', 'value')])
@@ -384,4 +497,4 @@ def all_temps(selected_year, period):
     return df.to_json()
 
 if __name__ == "__main__":
-    app.run_server(port=8050, debug=True)
+    app.run_server(port=8050, debug=False)
