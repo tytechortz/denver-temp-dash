@@ -452,8 +452,9 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
              Input('year', 'value'),
              Input('df5', 'children'),
              Input('max-trend', 'children'),
+             Input('min-trend', 'children'),
              Input('all-data', 'children')])
-def update_fyma_graph(selected_param, selected_year, df_5, max_trend, all_data):
+def update_fyma_graph(selected_param, selected_year, df_5, max_trend, min_trend, all_data):
     # print(all_data)
     fyma_temps = pd.read_json(all_data)
     fyma_temps['Date']=fyma_temps['Date'].dt.strftime("%Y-%m-%d") 
@@ -465,6 +466,9 @@ def update_fyma_graph(selected_param, selected_year, df_5, max_trend, all_data):
     all_max_temp_fit.index = df_5.index
     all_max_temp_fit.index = all_max_temp_fit.index.strftime("%Y-%m-%d")
     print(all_max_temp_fit)
+    all_min_temp_fit = pd.DataFrame(min_trend)
+    all_min_temp_fit.index = df_5.index
+    all_min_temp_fit.index = all_min_temp_fit.index.strftime("%Y-%m-%d")
 
     all_max_rolling = fyma_temps['TMAX'].dropna().rolling(window=1825)
     all_max_rolling_mean = all_max_rolling.mean()
@@ -493,12 +497,12 @@ def update_fyma_graph(selected_param, selected_year, df_5, max_trend, all_data):
                 x = fyma_temps.index,
                 name='Min Temp'
             ),
-            # go.Scatter(
-            #     y = all_min_temp_fit(),
-            #     x = df5.index,
-            #     name = 'trend',
-            #     line = {'color':'red'}
-            # ),
+            go.Scatter(
+                y = all_min_temp_fit[0],
+                x = all_min_temp_fit.index,
+                name = 'trend',
+                line = {'color':'red'}
+            ),
         ]
     layout = go.Layout(
         xaxis = {'rangeslider': {'visible':True},},
