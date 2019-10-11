@@ -288,24 +288,26 @@ def display_climate_day_table(all_data, selected_date):
     Output('climate-day-bar', 'figure'),
     [Input('date', 'date'),
     Input('all-data', 'children'),
+    Input('temp-param', 'value'),
     Input('product', 'value')])
-def climate_day_graph(selected_date, all_data, selected_product):
+def climate_day_graph(selected_date, all_data, selected_param, selected_product):
     dr = pd.read_json(all_data)
     dr.set_index(['Date'], inplace=True)
     dr = dr[(dr.index.month == int(selected_date[5:7])) & (dr.index.day == int(selected_date[8:10]))]
-
-    print(type(selected_date))
+    title_param = dr.index[0].strftime('%B %d')
+    y = dr[selected_param]
+    
     data = [
         go.Bar(
-            y=dr['TMAX'],
+            y=y,
             x=dr.index,
             marker = {'color':'dodgerblue'}
         )
     ]
     layout = go.Layout(
         xaxis={'title': 'Year'},
-        yaxis={'title': ''},
-        title='Max Temps for {}'.format(dr.index[0].strftime('%B %w')),
+        yaxis={'title': 'Deg F'},
+        title='{} for {}'.format(selected_param,title_param),
         plot_bgcolor = 'lightgray',
     )
     return {'data': data, 'layout': layout} 
@@ -375,12 +377,12 @@ def display_period_selector(product_value):
                     value = 'annual',
                     labelStyle = {'display':'inline'}
                 )
-    elif product_value == 'fyma-graph':
+    elif product_value == 'fyma-graph' or product_value == 'climate-for-day':
         return  dcc.RadioItems(
                     id = 'temp-param',
                     options = [
-                        {'label':'Max Temp', 'value':'Tmax'},
-                        {'label':'Min Temp', 'value':'Tmin'},
+                        {'label':'Max Temp', 'value':'TMAX'},
+                        {'label':'Min Temp', 'value':'TMIN'},
                     ],
                     value = 'Tmax',
                     labelStyle = {'display':'inline-block'}
