@@ -97,30 +97,41 @@ def get_layout():
                 className='row'
             ),
             html.Div([
-            html.Div([
-                html.Div(
-                    id='climate-day-table'
+                html.Div([
+                    html.Div(
+                        id='climate-day-table'
+                    ),
+                ],
+                    className='five columns'
                 ),
+                html.Div([
+                    html.Div([
+                        html.Div(id='daily-max-t'),
+                    ],
+                        className='twelve columns'
+                    ),
+                    html.Div([
+                        html.Div(id='daily-min-t'),
+                    ],
+                        className='twelve columns'
+                    ), 
+                ],
+                    className='seven columns'
+                ),     
             ],
-                className='five columns'
+                className='row'
             ),
             html.Div([
                 html.Div([
-                    html.Div(id='daily-max-t'),
+                    html.Div(
+                        id='bar'
+                    ),
                 ],
-                    className='twelve columns'
+                    className='eight columns'
                 ),
-                html.Div([
-                    html.Div(id='daily-min-t'),
-                ],
-                    className='twelve columns'
-                ), 
             ],
-                className='seven columns'
-            ),     
-        ],
-            className='row'
-        ),
+                className='row'
+            ),
             
             html.Div(id='all-data', style={'display': 'none'}),
             html.Div(id='rec-highs', style={'display': 'none'}),
@@ -153,7 +164,7 @@ def max_stats(product, d_max_max, admaxh, d_min_max):
     dly_max_max = d_max_max
     admaxh = admaxh
     dly_min_max = d_min_max
-    print(dly_max_max)
+    # print(dly_max_max)
     if product == 'climate-for-day':
         return html.Div([
             html.Div([
@@ -272,6 +283,41 @@ def display_climate_day_table(all_data, selected_date):
     d_max_min = dr['TMIN'].max()
 
     return dr.to_dict('records'), columns, d_max_max, avg_of_dly_highs, d_min_max, d_min_min, avg_of_dly_lows, d_max_min  
+
+@app.callback(
+    Output('climate-day-bar', 'figure'),
+    [Input('date', 'date'),
+    Input('all-data', 'children'),
+    Input('product', 'value')])
+def climate_day_graph(selected_date, all_data, selected_product):
+    dr = pd.read_json(all_data)
+    dr.set_index(['Date'], inplace=True)
+    dr = dr[(dr.index.month == int(selected_date[5:7])) & (dr.index.day == int(selected_date[8:10]))]
+
+    print(dr)
+    data = [
+        go.Bar(
+            y=dr['TMAX'],
+            x=dr.index,
+            marker = {'color':'dodgerblue'}
+        )
+    ]
+    layout = go.Layout(
+        xaxis={'title': 'Year'},
+        yaxis={'title': 'TAVG'},
+        title='Avg Temp by Decade',
+        plot_bgcolor = 'lightgray',
+    )
+    return {'data': data, 'layout': layout} 
+
+@app.callback(
+    Output('bar', 'children'),
+    [Input('product', 'value' )])
+def display_day_bar(selected_product):
+    print(selected_product)
+    if selected_product == 'climate-for-day':
+        return dcc.Graph(id='climate-day-bar')
+
 
 @app.callback(
     Output('climate-day-table', 'children'),
