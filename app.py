@@ -68,9 +68,6 @@ def get_layout():
                         id='year-picker'
                     ),
                     html.Div(
-                        id='period-picker'
-                    ),
-                    html.Div(
                         id='date-picker'
                     ),
                 ],
@@ -79,6 +76,11 @@ def get_layout():
             ],
                 className='row'
             ),
+            html.Div([
+                html.Div(
+                        id='period-picker'
+                    ),
+            ]),
             html.Div([
                 html.Div([
                     html.Div(
@@ -321,7 +323,7 @@ def display_period_selector(product_value):
                         {'label':'Fall (Sep-Nov)', 'value':'fall'},
                     ],
                     value = 'annual',
-                    labelStyle = {'display':'block'}
+                    labelStyle = {'display':'inline'}
                 )
     elif product_value == 'fyma-graph':
         return  dcc.RadioItems(
@@ -331,7 +333,7 @@ def display_period_selector(product_value):
                         {'label':'Min Temp', 'value':'Tmin'},
                     ],
                     value = 'Tmax',
-                    labelStyle = {'display':'block'}
+                    labelStyle = {'display':'inline-block'}
                 )
 
 @app.callback(
