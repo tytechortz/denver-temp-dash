@@ -63,7 +63,7 @@ def get_layout():
                     className='three columns',
                 ),
                 html.Div([
-                    html.Label('Options'),
+                    # html.Label('Options'),
                     html.Div(
                         id='year-picker'
                     ),
@@ -78,8 +78,12 @@ def get_layout():
             ),
             html.Div([
                 html.Div(
-                        id='period-picker'
-                    ),
+                    [
+                        html.Div(id='period-picker'),
+                    ],
+                    className='pretty_container'
+                ),
+                
             ]),
             html.Div([
                 html.Div([
