@@ -294,14 +294,22 @@ def climate_day_graph(selected_date, all_data, selected_param, selected_product)
     dr = pd.read_json(all_data)
     dr.set_index(['Date'], inplace=True)
     dr = dr[(dr.index.month == int(selected_date[5:7])) & (dr.index.day == int(selected_date[8:10]))]
+    print(dr)
     title_param = dr.index[0].strftime('%B %d')
-    y = dr[selected_param]
-    
+    if selected_param == 'TMAX' or selected_param == 'TMIN':
+        y = dr[selected_param]
+        base = 0
+    else: 
+        y = dr['TMAX'] - dr['TMIN']
+        base = dr['TMIN']
+    print(base)
     data = [
         go.Bar(
             y=y,
             x=dr.index,
-            marker = {'color':'dodgerblue'}
+            base=base,
+            marker = {'color':'dodgerblue'},
+            hovertemplate = 'Temp Range: %{y} - %{base}<extra></extra><br>'
         )
     ]
     layout = go.Layout(
@@ -383,8 +391,9 @@ def display_period_selector(product_value):
                     options = [
                         {'label':'Max Temp', 'value':'TMAX'},
                         {'label':'Min Temp', 'value':'TMIN'},
+                        {'label':'Temp Range', 'value':'RANGE'},
                     ],
-                    value = 'Tmax',
+                    value = 'TMAX',
                     labelStyle = {'display':'inline-block'}
                 )
 
@@ -607,7 +616,7 @@ def update_fyma_graph(selected_param, df_5, max_trend, min_trend, all_data):
     all_min_rolling = fyma_temps['TMIN'].dropna().rolling(window=1825)
     all_min_rolling_mean = all_min_rolling.mean()
 
-    if selected_param == 'Tmax':
+    if selected_param == 'TMAX':
         trace = [
             go.Scatter(
                 y = all_max_rolling_mean,
@@ -621,7 +630,7 @@ def update_fyma_graph(selected_param, df_5, max_trend, min_trend, all_data):
                 line = {'color':'red'}
             ),
         ]
-    elif selected_param == 'Tmin':
+    elif selected_param == 'TMAX':
         trace = [
             go.Scatter(
                 y = all_min_rolling_mean,
