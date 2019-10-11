@@ -294,7 +294,7 @@ def climate_day_graph(selected_date, all_data, selected_product):
     dr.set_index(['Date'], inplace=True)
     dr = dr[(dr.index.month == int(selected_date[5:7])) & (dr.index.day == int(selected_date[8:10]))]
 
-    print(dr)
+    print(type(selected_date))
     data = [
         go.Bar(
             y=dr['TMAX'],
@@ -304,8 +304,8 @@ def climate_day_graph(selected_date, all_data, selected_product):
     ]
     layout = go.Layout(
         xaxis={'title': 'Year'},
-        yaxis={'title': 'TAVG'},
-        title='Avg Temp by Decade',
+        yaxis={'title': ''},
+        title='Max Temps for {}'.format(dr.index[0].strftime('%B %w')),
         plot_bgcolor = 'lightgray',
     )
     return {'data': data, 'layout': layout} 
