@@ -289,38 +289,31 @@ def display_climate_day_table(all_data, selected_date):
     [Input('date', 'date'),
     Input('all-data', 'children'),
     Input('temp-param', 'value'),
-    Input('product', 'value'),
-    Input('min-trend', 'children'),
-    Input('max-trend', 'children')])
-def climate_day_graph(selected_date, all_data, selected_param, selected_product, min_trend, max_trend):
+    Input('product', 'value')])
+def climate_day_graph(selected_date, all_data, selected_param, selected_product):
     dr = pd.read_json(all_data)
     dr.set_index(['Date'], inplace=True)
     dr = dr[(dr.index.month == int(selected_date[5:7])) & (dr.index.day == int(selected_date[8:10]))]
     dr['AMAX'] = dr['TMAX'].mean()
     dr['AMIN'] = dr['TMIN'].mean()
-    print(dr)
+   
     xi = arange(0,len(dr['TMAX']))
     slope, intercept, r_value, p_value, std_err = stats.linregress(xi,dr['TMAX'])
     max_trend = (slope*xi+intercept)
-    print(max_trend)
+  
     dr['MXTRND'] = max_trend
     xi = arange(0,len(dr['TMIN']))
     slope, intercept, r_value, p_value, std_err = stats.linregress(xi,dr['TMIN'])
     min_trend = (slope*xi+intercept)
     dr['MNTRND'] = min_trend
-    print(dr)
-
 
     all_max_temp_fit = pd.DataFrame(max_trend)
     all_max_temp_fit.index = dr.index
-    # all_max_temp_fit.index = all_max_temp_fit.index.strftime("%Y-%m-%d")
+   
 
     all_min_temp_fit = pd.DataFrame(min_trend)
     all_min_temp_fit.index = dr.index
-    # all_min_temp_fit.index = all_min_temp_fit.index.strftime("%Y-%m-%d")
     
-    # print(max_trend)
-    # print(dr_avg_max)
     title_param = dr.index[0].strftime('%B %d')
     if selected_param == 'TMAX':
         y = dr[selected_param]
@@ -695,7 +688,7 @@ def update_fyma_graph(selected_param, df_5, max_trend, min_trend, all_data):
                 line = {'color':'red'}
             ),
         ]
-    elif selected_param == 'TMAX':
+    elif selected_param == 'TMIN':
         trace = [
             go.Scatter(
                 y = all_min_rolling_mean,
