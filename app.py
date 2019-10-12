@@ -289,28 +289,93 @@ def display_climate_day_table(all_data, selected_date):
     [Input('date', 'date'),
     Input('all-data', 'children'),
     Input('temp-param', 'value'),
-    Input('product', 'value')])
-def climate_day_graph(selected_date, all_data, selected_param, selected_product):
+    Input('product', 'value'),
+    Input('min-trend', 'children'),
+    Input('max-trend', 'children')])
+def climate_day_graph(selected_date, all_data, selected_param, selected_product, min_trend, max_trend):
     dr = pd.read_json(all_data)
     dr.set_index(['Date'], inplace=True)
     dr = dr[(dr.index.month == int(selected_date[5:7])) & (dr.index.day == int(selected_date[8:10]))]
+    dr['AMAX'] = dr['TMAX'].mean()
+    dr['AMIN'] = dr['TMIN'].mean()
     print(dr)
+    xi = arange(0,len(dr['TMAX']))
+    slope, intercept, r_value, p_value, std_err = stats.linregress(xi,dr['TMAX'])
+    max_trend = (slope*xi+intercept)
+    print(max_trend)
+    dr['MXTRND'] = max_trend
+    xi = arange(0,len(dr['TMIN']))
+    slope, intercept, r_value, p_value, std_err = stats.linregress(xi,dr['TMIN'])
+    min_trend = (slope*xi+intercept)
+    dr['MNTRND'] = min_trend
+    print(dr)
+
+
+    all_max_temp_fit = pd.DataFrame(max_trend)
+    all_max_temp_fit.index = dr.index
+    # all_max_temp_fit.index = all_max_temp_fit.index.strftime("%Y-%m-%d")
+
+    all_min_temp_fit = pd.DataFrame(min_trend)
+    all_min_temp_fit.index = dr.index
+    # all_min_temp_fit.index = all_min_temp_fit.index.strftime("%Y-%m-%d")
+    
+    # print(max_trend)
+    # print(dr_avg_max)
     title_param = dr.index[0].strftime('%B %d')
-    if selected_param == 'TMAX' or selected_param == 'TMIN':
+    if selected_param == 'TMAX':
         y = dr[selected_param]
         base = 0
-    else: 
+        color_a = 'tomato'
+        color_b = 'red'
+        avg_y = dr['AMAX']
+        trend_y = dr['MXTRND']
+        name = 'temp'
+        name_a = 'avg high'
+        name_b = 'trend'
+
+    elif selected_param == 'TMIN':
+        y = dr[selected_param]
+        base = 0
+        color_a = 'blue'
+        color_b = 'dodgerblue'
+        avg_y = dr['AMIN']
+        trend_y = dr['MNTRND']
+        name = 'temp'
+        name_a = 'avg low'
+        name_b = 'trend'
+
+    else:
         y = dr['TMAX'] - dr['TMIN']
         base = dr['TMIN']
-    print(base)
+        color_a = 'dodgerblue'
+        color_b = 'tomato'
+        avg_y = dr['AMIN']
+        trend_y = dr['AMAX']
+        name = 'range'
+        name_a = 'avg low'
+        name_b = 'avg high'
+
     data = [
         go.Bar(
             y=y,
             x=dr.index,
             base=base,
-            marker = {'color':'dodgerblue'},
-            hovertemplate = 'Temp Range: %{y} - %{base}<extra></extra><br>'
-        )
+            marker={'color':'black'},
+            name=name,
+            hovertemplate='Temp Range: %{y} - %{base}<extra></extra><br>'
+        ),
+        go.Scatter(
+            y=avg_y,
+            x=dr.index,
+            name=name_a,
+            marker={'color': color_a}
+        ),
+        go.Scatter(
+            y=trend_y,
+            x=dr.index,
+            name=name_b,
+            marker={'color': color_b}
+        ),  
     ]
     layout = go.Layout(
         xaxis={'title': 'Year'},
