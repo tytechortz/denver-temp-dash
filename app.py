@@ -808,7 +808,7 @@ def clean_df5(all_data, product_value):
     df_ya_max = df_date_index.resample('Y').mean()
     df5 = df_ya_max[:-1]
     df5 = df5.drop(['dow'], axis=1)
-    # print(df5)
+    print(df5)
     return df5.to_json(date_format='iso')
 
 @app.callback(
