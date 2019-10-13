@@ -25,6 +25,8 @@ today = time.strftime("%Y-%m-%d")
 startyr = 1950
 year_count = current_year-startyr
 
+print(type(df_all_temps['Date'][0]))
+
 def get_layout():
     return html.Div(
         [
@@ -260,7 +262,7 @@ def min_stats(product, d_min_min, adminl, d_max_min):
     Input('date', 'date')])
 def display_climate_day_table(all_data, selected_date):
     dr = pd.read_json(all_data)
-    
+    dr['Date'] = pd.to_datetime(dr['Date'], unit='ms')
     # dr['Date']=dr['Date'].dt.strftime("%Y-%m-%d") 
     dr.set_index(['Date'], inplace=True)
     # print(dr)
@@ -292,6 +294,7 @@ def display_climate_day_table(all_data, selected_date):
     Input('product', 'value')])
 def climate_day_graph(selected_date, all_data, selected_param, selected_product):
     dr = pd.read_json(all_data)
+    dr['Date'] = pd.to_datetime(dr['Date'], unit='ms')
     dr.set_index(['Date'], inplace=True)
     dr = dr[(dr.index.month == int(selected_date[5:7])) & (dr.index.day == int(selected_date[8:10]))]
     dr['AMAX'] = dr['TMAX'].mean()
@@ -492,22 +495,31 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
     # print(period)
     previous_year = int(selected_year) - 1
     selected_year = selected_year
+    print(type(selected_year))
     temps = pd.read_json(temp_data)
     temps = temps.drop([0,1], axis=1)
     temps.columns = ['date','TMAX','TMIN']
-    temps['date'] = pd.to_datetime(temps['date'])
+    print(type(temps['date']))
+    # temps['date']
+    temps['date'] = pd.to_datetime(temps['date'], unit='ms')
     temps = temps.set_index(['date'])
     temps['dif'] = temps['TMAX'] - temps['TMIN']
+    
+    # print(type(temps['date'][0]))
+    # print(temps['date'])
    
-   
-    temps_cy = temps[temps.index.year.isin([selected_year])]
-    temps_py = temps[temps.index.year.isin([previous_year])]
+    # temps_cy = temps[temps.index.year.isin([selected_year])]
+    temps_cy = temps[(temps.index.year==selected_year)]
+    # temps_py = temps[temps.index.year.isin([previous_year])]
+    temps_py = temps[(temps.index.year==previous_year)]
     df_record_highs_ly = pd.read_json(rec_highs)
     df_record_highs_ly = df_record_highs_ly.set_index(1)
     df_record_lows_ly = pd.read_json(rec_lows)
     df_record_lows_ly = df_record_lows_ly.set_index(1)
     df_rl_cy = df_record_lows_ly[:len(temps_cy.index)]
     df_rh_cy = df_record_highs_ly[:len(temps_cy.index)]
+    print(temps_cy)
+
     
     df_norms = pd.read_json(norms)
     df_norms_cy = df_norms[:len(temps_cy.index)]
@@ -655,7 +667,8 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
 def update_fyma_graph(selected_param, df_5, max_trend, min_trend, all_data):
     # print(all_data)
     fyma_temps = pd.read_json(all_data)
-    fyma_temps['Date']=fyma_temps['Date'].dt.strftime("%Y-%m-%d") 
+    fyma_temps['Date'] = pd.to_datetime(fyma_temps['Date'], unit='ms')
+    # fyma_temps['Date']=fyma_temps['Date'].dt.strftime("%Y-%m-%d") 
     fyma_temps.set_index(['Date'], inplace=True)
 
     df_5 = pd.read_json(df_5)
@@ -727,10 +740,17 @@ def all_temps_cleaner(product_value):
     # print(product_value)
     cleaned_all_temps = df_all_temps
     cleaned_all_temps.columns=['dow','sta','Date','TMAX','TMIN']
-    cleaned_all_temps['Date'] = pd.to_datetime(cleaned_all_temps['Date'])
+    # cleaned_all_temps['Date'] = pd.to_datetime(cleaned_all_temps['Date'])
     cleaned_all_temps = cleaned_all_temps.drop(['dow','sta'], axis=1)
+    print(type(cleaned_all_temps['Date']))
+    print(cleaned_all_temps['Date'][0])
+    # cleaned_all_temps["Date"] = pd.to_datetime(cleaned_all_temps['Date'], format = '%Y-%m-%d')
+    # cleaned_all_temps['Date'] = cleaned_all_temps['Date'].strftime('%Y-%m-%d')
+    # print(type(cleaned_all_temps['Date'][0]))
+    # print(cleaned_all_temps['Date'][0])
 
-    return cleaned_all_temps.to_json(date_format='iso')
+    # return cleaned_all_temps.to_json(date_format='iso')
+    return cleaned_all_temps.to_json()
 
 @app.callback(Output('title-date-range', 'children'),
             [Input('product', 'value'),
@@ -738,6 +758,7 @@ def all_temps_cleaner(product_value):
 def all_temps_cleaner(product, temps):
     # print(temps)
     title_temps = pd.read_json(temps)
+    title_temps['Date'] = pd.to_datetime(title_temps['Date'], unit='ms')
     title_temps['Date']=title_temps['Date'].dt.strftime("%Y-%m-%d")
     last_day = title_temps.iloc[-1, 0] 
     
@@ -775,9 +796,15 @@ def norm_highs(selected_year):
     [Input('all-data', 'children'),
     Input('product', 'value')])
 def clean_df5(all_data, product_value):
-    title_temps = pd.read_json(all_data)
-    title_temps['Date']=title_temps['Date'].dt.strftime("%Y-%m-%d")
+    dr = pd.read_json(all_data)
+    print(dr)
+    dr['Date'] = pd.to_datetime(dr['Date'], unit='ms')
+    # df_all_temps['Date'] = pd.to_datetime(df_all_temps['Date'], unit='ms')
+    print(type(dr['Date'][0]))
+    # title_temps['Date'] = title_temps['Date'].dt.strftime("%Y-%m-%d")
     df_date_index = df_all_temps.set_index(['Date'])
+    print(df_date_index)
+    df_date_index.index = pd.to_datetime(df_date_index.index)
     df_ya_max = df_date_index.resample('Y').mean()
     df5 = df_ya_max[:-1]
     df5 = df5.drop(['dow'], axis=1)
@@ -821,6 +848,7 @@ def all_temps(selected_year, period):
         cursor = connection.cursor()
 
         postgreSQL_select_year_Query = 'SELECT * FROM temps WHERE EXTRACT(year FROM "DATE"::TIMESTAMP) IN ({},{}) ORDER BY "DATE" ASC'.format(selected_year, previous_year)
+        # postgreSQL_select_year_Query = 'SELECT * FROM temps WHERE
         cursor.execute(postgreSQL_select_year_Query)
         temp_records = cursor.fetchall()
         df = pd.DataFrame(temp_records)
