@@ -328,6 +328,8 @@ def climate_day_graph(selected_date, all_data, selected_param, selected_product)
         name = 'temp'
         name_a = 'avg high'
         name_b = 'trend'
+        hovertemplate='Temp Range: %{y}'
+        
 
     elif selected_param == 'TMIN':
         y = dr[selected_param]
@@ -339,6 +341,7 @@ def climate_day_graph(selected_date, all_data, selected_param, selected_product)
         name = 'temp'
         name_a = 'avg low'
         name_b = 'trend'
+        hovertemplate='Temp Range: %{y}'
 
     else:
         y = dr['TMAX'] - dr['TMIN']
@@ -350,6 +353,7 @@ def climate_day_graph(selected_date, all_data, selected_param, selected_product)
         name = 'range'
         name_a = 'avg low'
         name_b = 'avg high'
+        hovertemplate='Temp Range: %{y} - %{base}<extra></extra><br>'
 
     data = [
         go.Bar(
@@ -358,23 +362,23 @@ def climate_day_graph(selected_date, all_data, selected_param, selected_product)
             base=base,
             marker={'color':'black'},
             name=name,
-            hovertemplate='Temp Range: %{y} - %{base}<extra></extra><br>'
+            hovertemplate=hovertemplate
         ),
         go.Scatter(
             y=avg_y,
             x=dr.index,
             mode = 'lines',
             name=name_a,
-            line={'color': color_a}
-            hovertemplate='Temp Range: %{y}'
+            line={'color': color_a},
+            hovertemplate=hovertemplate
         ),
         go.Scatter(
             y=trend_y,
             x=dr.index,
             name=name_b,
             mode = 'lines',
-            line={'color': color_b}
-            hovertemplate='Temp Range: %{y}'
+            line={'color': color_b},
+            hovertemplate=hovertemplate
         ),  
     ]
     layout = go.Layout(
