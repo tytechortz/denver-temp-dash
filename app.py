@@ -363,14 +363,18 @@ def climate_day_graph(selected_date, all_data, selected_param, selected_product)
         go.Scatter(
             y=avg_y,
             x=dr.index,
+            mode = 'lines',
             name=name_a,
-            marker={'color': color_a}
+            line={'color': color_a}
+            hovertemplate='Temp Range: %{y}'
         ),
         go.Scatter(
             y=trend_y,
             x=dr.index,
             name=name_b,
-            marker={'color': color_b}
+            mode = 'lines',
+            line={'color': color_b}
+            hovertemplate='Temp Range: %{y}'
         ),  
     ]
     layout = go.Layout(
