@@ -38,7 +38,7 @@ def get_layout():
     return html.Div(
         [
             html.Div([
-                html.H1(
+                html.H4(
                     'DENVER TEMPERATURE RECORD',
                     className='twelve columns',
                     style={'text-align': 'center'}
@@ -47,7 +47,7 @@ def get_layout():
                 className='row'
             ),
             html.Div([
-                html.H4(
+                html.H6(
                     id='title-date-range',
                     className='twelve columns',
                     style={'text-align': 'center'}
@@ -104,12 +104,14 @@ def get_layout():
                 ),
                 html.Div([
                     html.Div([
-                        html.Pre(id='relayout-data'
+                        html.Div(id='graph-stats'
                         ),
                     ],
-                        className='four columns'
+                        
                     ),
-                ])    
+                ],
+                    className='four columns'
+                ),    
             ],
                 className='row'
             ),
@@ -186,19 +188,21 @@ app.config['suppress_callback_exceptions']=True
 #         ])
 
 @app.callback(
-    Output('relayout-data', 'children'),
+    Output('graph-stats', 'children'),
     [Input('graph1', 'relayoutData')])
 def display_graph_stats(selectedData):
     
     print(selectedData)
-    return json.dumps(selectedData)
-    # day_count = 10
-    # return html.Div([
-    #         html.Div([
-    #             html.H6('Day Count', style={'text-align':'center'}),
-    #             html.H6('{}'.format(day_count), style={'text-align': 'center'})
-    #         ])
-    #     ])
+    # return json.dumps(selectedData)
+    day_count = 10
+    return html.Div([
+            html.Div([
+                html.H6('Day Count', style={'text-align':'center'}),
+                html.H6('{}'.format(day_count), style={'text-align': 'center'})
+            ],
+                className='round1'
+            ),
+        ])
 
 
 @app.callback(Output('graph1', 'figure'),
@@ -902,4 +906,4 @@ def all_temps(selected_year, period):
     return df.to_json()
 
 if __name__ == "__main__":
-    app.run_server(port=8050, debug=True)
+    app.run_server(port=8050, debug=False)
