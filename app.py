@@ -194,12 +194,18 @@ def display_graph_stats(temps):
     temps = pd.read_json(temps)
     temps.index = pd.to_datetime(temps.index, unit='ms')
     print(temps)
-    # return json.dumps(selectedData)
-    day_count = 10
+    day_count = temps.shape[0]
+    rec_highs = len(temps[temps['TMAX'] == temps['rh']])
     return html.Div([
             html.Div([
                 html.H6('Day Count', style={'text-align':'center'}),
                 html.H6('{}'.format(day_count), style={'text-align': 'center'})
+            ],
+                className='round1'
+            ),
+            html.Div([
+                html.H6('Records', style={'text-align':'center'}),
+                html.H6('{}'.format(rec_highs), style={'text-align': 'center'})
             ],
                 className='round1'
             ),
