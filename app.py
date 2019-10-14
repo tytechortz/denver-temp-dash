@@ -25,6 +25,14 @@ today = time.strftime("%Y-%m-%d")
 startyr = 1950
 year_count = current_year-startyr
 
+styles = {
+    'pre': {
+        'border': 'thin lightgrey solid',
+        'overflowX': 'scroll'
+    }
+}
+
+
 
 def get_layout():
     return html.Div(
@@ -96,7 +104,7 @@ def get_layout():
                 ),
                 html.Div([
                     html.Div([
-                        html.Div(id='graph-stats'
+                        html.Pre(id='relayout-data'
                         ),
                     ],
                         className='four columns'
@@ -156,7 +164,7 @@ def get_layout():
             html.Div(id='d-min-min', style={'display': 'none'}),
             html.Div(id='avg-of-dly-lows', style={'display': 'none'}),
             html.Div(id='d-max-min', style={'display': 'none'}),
-            html.Div(id='day-count', style={'display': 'none'}),
+            # html.Div(id='day-count', style={'display': 'none'}),
         ]
     )
 
@@ -164,24 +172,33 @@ app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
-@app.callback(
-    Output('graph-stats', 'children'),
-    [Input('day-count', 'children')])
-def graph_stats(day_count):
-    if product == 'temp-graph':
-        return html.Div([
-            html.Div([
-                html.H6('Day Count', style={'text-align':'center'}),
-                html.H6('{}'.format(day_count), style={'text-align': 'center'})
-            ])
-        ])
+# @app.callback(
+#     Output('graph-stats', 'children'),
+#     [Input('product', 'value')])
+# def graph_stats(product_value):
+#     day_count = 10
+#     if product_value == 'temp-graph':
+#         return html.Div([
+#             html.Div([
+#                 html.H6('Day Count', style={'text-align':'center'}),
+#                 html.H6('{}'.format(day_count), style={'text-align': 'center'})
+#             ])
+#         ])
 
 @app.callback(
-    Output('day-count', 'children'),
-    [Input('temp-data', 'children')])
-def graph_stats(temp_data):
-    day_count = 10
-    return day_count.to_json()
+    Output('relayout-data', 'children'),
+    [Input('graph1', 'relayoutData')])
+def display_graph_stats(selectedData):
+    
+    print(selectedData)
+    return json.dumps(selectedData)
+    # day_count = 10
+    # return html.Div([
+    #         html.Div([
+    #             html.H6('Day Count', style={'text-align':'center'}),
+    #             html.H6('{}'.format(day_count), style={'text-align': 'center'})
+    #         ])
+    #     ])
 
 
 @app.callback(Output('graph1', 'figure'),
@@ -339,11 +356,11 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
             ),
         ]
     layout = go.Layout(
-                xaxis = {'rangeslider': {'visible':True},},
+                xaxis = {'rangeslider': {'visible':False},},
                 yaxis = {"title": 'Temperature F'},
                 title ='Daily Temps',
                 plot_bgcolor = 'lightgray',
-                height = 700,
+                height = 500,
         )
     return {'data': trace, 'layout': layout}
 
@@ -885,4 +902,4 @@ def all_temps(selected_year, period):
     return df.to_json()
 
 if __name__ == "__main__":
-    app.run_server(port=8050, debug=False)
+    app.run_server(port=8050, debug=True)
