@@ -202,31 +202,30 @@ def display_graph_stats(temps, selected_product):
         return html.Div(
             [
                 html.Div([
-                    html.H6('Day Count', style={'text-align':'center'}),
+                    html.Div('Day Count', style={'text-align':'center'}),
+                    html.Div('{}'.format(day_count), style={'text-align': 'center'})
                 ],
                     className='round1'
                 ),
-                html.Div([
                     html.Div([
-                        html.H6('Records', style={'text-align':'center'}),
+                        html.Div('Records', style={'text-align':'center'}),
                         html.Div([
                             html.Div([
-                                html.H6('High: {}'.format(rec_highs), style={'text-align': 'center', 'color':'red'}),
+                                html.Div('High: {}'.format(rec_highs), style={'text-align': 'center', 'color':'red'}),
                             ],
                                 className='six columns'
                             ),
                             html.Div([
-                                html.H6('Low: {}'.format(rec_lows), style={'text-align': 'center', 'color':'blue'}),
+                                html.Div('Low: {}'.format(rec_lows), style={'text-align': 'center', 'color':'blue'})
                             ],
                                 className='six columns'
                             ),
                         ],
                             className='row'
                         ),
-                    ]),      
-                ],
-                    className='round1'
-                ),
+                    ],
+                        className='round1'
+                    ),     
             ],
                 className='round1'
             ),
