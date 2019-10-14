@@ -189,27 +189,47 @@ app.config['suppress_callback_exceptions']=True
 
 @app.callback(
     Output('graph-stats', 'children'),
-    [Input('temps', 'children')])
-def display_graph_stats(temps):
+    [Input('temps', 'children'),
+    Input('product','value')])
+def display_graph_stats(temps, selected_product):
     temps = pd.read_json(temps)
     temps.index = pd.to_datetime(temps.index, unit='ms')
     print(temps)
     day_count = temps.shape[0]
     rec_highs = len(temps[temps['TMAX'] == temps['rh']])
-    return html.Div([
-            html.Div([
-                html.H6('Day Count', style={'text-align':'center'}),
-                html.H6('{}'.format(day_count), style={'text-align': 'center'})
+    rec_lows = len(temps[temps['TMIN'] == temps['rl']])
+    if selected_product == 'temp-graph':
+        return html.Div(
+            [
+                html.Div([
+                    html.H6('Day Count', style={'text-align':'center'}),
+                ],
+                    className='round1'
+                ),
+                html.Div([
+                    html.Div([
+                        html.H6('Records', style={'text-align':'center'}),
+                        html.Div([
+                            html.Div([
+                                html.H6('High: {}'.format(rec_highs), style={'text-align': 'center', 'color':'red'}),
+                            ],
+                                className='six columns'
+                            ),
+                            html.Div([
+                                html.H6('Low: {}'.format(rec_lows), style={'text-align': 'center', 'color':'blue'}),
+                            ],
+                                className='six columns'
+                            ),
+                        ],
+                            className='row'
+                        ),
+                    ]),      
+                ],
+                    className='round1'
+                ),
             ],
                 className='round1'
             ),
-            html.Div([
-                html.H6('Records', style={'text-align':'center'}),
-                html.H6('{}'.format(rec_highs), style={'text-align': 'center'})
-            ],
-                className='round1'
-            ),
-        ])
 
 
 @app.callback([Output('graph1', 'figure'),
