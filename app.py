@@ -166,7 +166,7 @@ def get_layout():
             html.Div(id='d-min-min', style={'display': 'none'}),
             html.Div(id='avg-of-dly-lows', style={'display': 'none'}),
             html.Div(id='d-max-min', style={'display': 'none'}),
-            # html.Div(id='day-count', style={'display': 'none'}),
+            html.Div(id='temps', style={'display': 'none'}),
         ]
     )
 
@@ -189,10 +189,11 @@ app.config['suppress_callback_exceptions']=True
 
 @app.callback(
     Output('graph-stats', 'children'),
-    [Input('graph1', 'relayoutData')])
-def display_graph_stats(selectedData):
-    
-    print(selectedData)
+    [Input('temps', 'children')])
+def display_graph_stats(temps):
+    temps = pd.read_json(temps)
+    temps.index = pd.to_datetime(temps.index, unit='ms')
+    print(temps)
     # return json.dumps(selectedData)
     day_count = 10
     return html.Div([
@@ -205,7 +206,8 @@ def display_graph_stats(selectedData):
         ])
 
 
-@app.callback(Output('graph1', 'figure'),
+@app.callback([Output('graph1', 'figure'),
+             Output('temps', 'children')],
              [Input('temp-data', 'children'),
              Input('rec-highs', 'children'),
              Input('rec-lows', 'children'),
@@ -366,7 +368,7 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
                 plot_bgcolor = 'lightgray',
                 height = 500,
         )
-    return {'data': trace, 'layout': layout}
+    return {'data': trace, 'layout': layout}, temps.to_json()
 
 
 
