@@ -333,7 +333,6 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
         temps_cy = temps_cy[temps_cy.index.month.isin([1,2])]
         temp_frames = [temps_py, temps_cy]
         temps = pd.concat(temp_frames, sort=True)
-        print(temps)
         date_time = date_time[:91]  
         
         df_record_highs_jan_feb = df_record_highs_ly[df_record_highs_ly.index.str.match(pat = '(01-)|(02-)')]
@@ -350,14 +349,11 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
         df_high_norms_dec = df_norms[3][335:]
         high_norm_frames = [df_high_norms_dec, df_high_norms_jan_feb]
         df_high_norms = pd.concat(high_norm_frames)
-        # print(type(df_high_norms_dec))
 
         df_low_norms_jan_feb = df_norms[4][0:60]
         df_low_norms_dec = df_norms[4][335:]
         low_norm_frames = [df_low_norms_dec, df_low_norms_jan_feb]
         df_low_norms = pd.concat(low_norm_frames)
-
-        # temps['nh'] = df_high_norms
 
         bar_x = date_time
         nh_value = df_high_norms
