@@ -8,6 +8,7 @@ from datetime import datetime, date, timedelta
 import json, csv, dash_table, time, operator
 from connect import norm_records, rec_lows, rec_highs, all_temps
 import pandas as pd
+import numpy as np
 from numpy import arange,array,ones
 from scipy import stats 
 import psycopg2
@@ -194,6 +195,7 @@ app.config['suppress_callback_exceptions']=True
 def display_graph_stats(temps, selected_product):
     temps = pd.read_json(temps)
     temps.index = pd.to_datetime(temps.index, unit='ms')
+    temps = temps[np.isfinite(temps['TMAX'])]
     print(temps)
     day_count = temps.shape[0]
     rec_highs = len(temps[temps['TMAX'] == temps['rh']])
@@ -204,6 +206,7 @@ def display_graph_stats(temps, selected_product):
     nl = temps['nl'].sum()
     tmax = temps['TMAX'].sum()
     tmin = temps['TMIN'].sum()
+
     print(nh)
     print(nl)
     print(tmax)
