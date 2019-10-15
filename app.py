@@ -26,14 +26,6 @@ today = time.strftime("%Y-%m-%d")
 startyr = 1950
 year_count = current_year-startyr
 
-styles = {
-    'pre': {
-        'border': 'thin lightgrey solid',
-        'overflowX': 'scroll'
-    }
-}
-
-
 
 def get_layout():
     return html.Div(
@@ -108,7 +100,6 @@ def get_layout():
                         html.Div(id='graph-stats'
                         ),
                     ],
-                        
                     ),
                 ],
                     className='four columns'
@@ -196,7 +187,7 @@ def display_graph_stats(temps, selected_product):
     temps = pd.read_json(temps)
     temps.index = pd.to_datetime(temps.index, unit='ms')
     temps = temps[np.isfinite(temps['TMAX'])]
-    print(temps)
+    # print(temps)
     day_count = temps.shape[0]
     rec_highs = len(temps[temps['TMAX'] == temps['rh']])
     rec_lows = len(temps[temps['TMIN'] == temps['rl']])
@@ -206,11 +197,15 @@ def display_graph_stats(temps, selected_product):
     nl = temps['nl'].sum()
     tmax = temps['TMAX'].sum()
     tmin = temps['TMIN'].sum()
+    nh_sum = temps['nh'][-31:].sum()
+    nh_sum2 = temps['nh'][:60].sum()
 
-    print(nh)
-    print(nl)
-    print(tmax)
-    print(tmin)
+    print(temps)
+    # print(nl)
+    # print(tmax)
+    # print(tmin)
+    print(nh_sum)
+    print(nh_sum2)
     degree_days = ((temps['TMAX'].sum() - temps['nh'].sum()) + (temps['TMIN'].sum() - temps['nl'].sum())) / 2
     if degree_days > 0:
         color = 'red'
@@ -293,7 +288,9 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
     temps['dif'] = temps['TMAX'] - temps['TMIN']
     
     temps_cy = temps[(temps.index.year==selected_year)]
-    temps_py = temps[(temps.index.year==previous_year)]
+    temps_py = temps[(temps.index.year==previous_year)][-31:]
+    # print(temps_cy)
+    # print(temps_py)
     df_record_highs_ly = pd.read_json(rec_highs)
     df_record_highs_ly = df_record_highs_ly.set_index(1)
     df_record_lows_ly = pd.read_json(rec_lows)
@@ -303,11 +300,17 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
 
     df_norms = pd.read_json(norms)
     df_norms_cy = df_norms[:len(temps_cy.index)]
+    df_norms_py = df_norms[:31]
+    # print(df_norms_cy)
+    # print(df_norms_py)
   
     temps_cy.loc[:,'rl'] = df_rl_cy[0].values
     temps_cy.loc[:,'rh'] = df_rh_cy[0].values
     temps_cy.loc[:,'nh'] = df_norms_cy[3].values
     temps_cy.loc[:,'nl'] = df_norms_cy[4].values
+    # print(temps_cy)
+    temps_py.loc[:,'nh'] = df_norms_py[3].values
+    temps_py.loc[:,'nl'] = df_norms_py[4].values
    
     if period == 'spring':
         temps = temps_cy[temps_cy.index.month.isin([3,4,5])]
@@ -352,6 +355,7 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
         temps_cy = temps_cy[temps_cy.index.month.isin([1,2])]
         temp_frames = [temps_py, temps_cy]
         temps = pd.concat(temp_frames, sort=True)
+        print(temps)
         date_time = date_time[:91]  
         
         df_record_highs_jan_feb = df_record_highs_ly[df_record_highs_ly.index.str.match(pat = '(01-)|(02-)')]
@@ -368,11 +372,14 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
         df_high_norms_dec = df_norms[3][335:]
         high_norm_frames = [df_high_norms_dec, df_high_norms_jan_feb]
         df_high_norms = pd.concat(high_norm_frames)
+        # print(type(df_high_norms_dec))
 
         df_low_norms_jan_feb = df_norms[4][0:60]
         df_low_norms_dec = df_norms[4][335:]
         low_norm_frames = [df_low_norms_dec, df_low_norms_jan_feb]
         df_low_norms = pd.concat(low_norm_frames)
+
+        # temps['nh'] = df_high_norms
 
         bar_x = date_time
         nh_value = df_high_norms
