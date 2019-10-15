@@ -167,6 +167,11 @@ app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
+@app.callback(Output('frs-graph', 'figure'),
+             [Input('all-data', 'children')])
+def update_frs_graph(all_data):
+    return print(all_data)
+
 @app.callback(
     Output('graph-stats', 'children'),
     [Input('temps', 'children'),
@@ -726,6 +731,15 @@ def display_period_selector(product_value):
                     value = 'TMAX',
                     labelStyle = {'display':'inline-block'}
                 )
+    elif product_value == 'frs':
+        return dcc.RadioItems(
+                    id = 'frs-selector',
+                    options = [
+                        {'label':'Bar Charts', 'value':'bars'},
+                        {'label':'Heat Maps', 'value':'heat'},
+                    ],
+                    labelStyle = {'display':'inline'}
+                )
 
 @app.callback(
     Output('date-picker', 'children'),
@@ -843,8 +857,7 @@ def all_temps_cleaner(product_value):
 @app.callback(Output('title-date-range', 'children'),
             [Input('product', 'value'),
             Input('all-data', 'children')])
-def all_temps_cleaner(product, temps):
-   
+def title_date(product, temps):
     title_temps = pd.read_json(temps)
     title_temps['Date'] = pd.to_datetime(title_temps['Date'], unit='ms')
     title_temps['Date']=title_temps['Date'].dt.strftime("%Y-%m-%d")
