@@ -166,19 +166,6 @@ app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
-# @app.callback(
-#     Output('graph-stats', 'children'),
-#     [Input('product', 'value')])
-# def graph_stats(product_value):
-#     day_count = 10
-#     if product_value == 'temp-graph':
-#         return html.Div([
-#             html.Div([
-#                 html.H6('Day Count', style={'text-align':'center'}),
-#                 html.H6('{}'.format(day_count), style={'text-align': 'center'})
-#             ])
-#         ])
-
 @app.callback(
     Output('graph-stats', 'children'),
     [Input('temps', 'children'),
@@ -187,7 +174,6 @@ def display_graph_stats(temps, selected_product):
     temps = pd.read_json(temps)
     temps.index = pd.to_datetime(temps.index, unit='ms')
     temps = temps[np.isfinite(temps['TMAX'])]
-    # print(temps)
     day_count = temps.shape[0]
     rec_highs = len(temps[temps['TMAX'] == temps['rh']])
     rec_lows = len(temps[temps['TMIN'] == temps['rl']])
@@ -200,12 +186,6 @@ def display_graph_stats(temps, selected_product):
     nh_sum = temps['nh'][-31:].sum()
     nh_sum2 = temps['nh'][:60].sum()
 
-    print(temps)
-    # print(nl)
-    # print(tmax)
-    # print(tmin)
-    print(nh_sum)
-    print(nh_sum2)
     degree_days = ((temps['TMAX'].sum() - temps['nh'].sum()) + (temps['TMIN'].sum() - temps['nl'].sum())) / 2
     if degree_days > 0:
         color = 'red'
@@ -289,8 +269,7 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
     
     temps_cy = temps[(temps.index.year==selected_year)]
     temps_py = temps[(temps.index.year==previous_year)][-31:]
-    # print(temps_cy)
-    # print(temps_py)
+   
     df_record_highs_ly = pd.read_json(rec_highs)
     df_record_highs_ly = df_record_highs_ly.set_index(1)
     df_record_lows_ly = pd.read_json(rec_lows)
@@ -301,14 +280,13 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
     df_norms = pd.read_json(norms)
     df_norms_cy = df_norms[:len(temps_cy.index)]
     df_norms_py = df_norms[:31]
-    # print(df_norms_cy)
-    # print(df_norms_py)
+   
   
     temps_cy.loc[:,'rl'] = df_rl_cy[0].values
     temps_cy.loc[:,'rh'] = df_rh_cy[0].values
     temps_cy.loc[:,'nh'] = df_norms_cy[3].values
     temps_cy.loc[:,'nl'] = df_norms_cy[4].values
-    # print(temps_cy)
+   
     temps_py.loc[:,'nh'] = df_norms_py[3].values
     temps_py.loc[:,'nl'] = df_norms_py[4].values
    
