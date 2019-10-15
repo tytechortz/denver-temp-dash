@@ -56,6 +56,7 @@ def get_layout():
                         options=[
                             {'label':'Temperature graphs', 'value':'temp-graph'},
                             {'label':'Climatology for a day', 'value':'climate-for-day'},
+                            {'label':'Full Record Stuff', 'value':'frs'},
                             {'label':'5 Year Moving Avgs', 'value':'fyma-graph'},
                         ],
                         # value='temp-graph',
@@ -183,8 +184,8 @@ def display_graph_stats(temps, selected_product):
     nl = temps['nl'].sum()
     tmax = temps['TMAX'].sum()
     tmin = temps['TMIN'].sum()
-    nh_sum = temps['nh'][-31:].sum()
-    nh_sum2 = temps['nh'][:60].sum()
+    # nh_sum = temps['nh'][-31:].sum()
+    # nh_sum2 = temps['nh'][:60].sum()
 
     degree_days = ((temps['TMAX'].sum() - temps['nh'].sum()) + (temps['TMIN'].sum() - temps['nl'].sum())) / 2
     if degree_days > 0:
@@ -247,7 +248,6 @@ def display_graph_stats(temps, selected_product):
             ],
                 className='round1'
             ),
-
 
 @app.callback([Output('graph1', 'figure'),
              Output('temps', 'children')],
@@ -418,9 +418,6 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
                 height = 500,
         )
     return {'data': trace, 'layout': layout}, temps.to_json()
-
-
-
 
 @app.callback(
     Output('daily-max-t', 'children'),
@@ -662,7 +659,6 @@ def display_day_bar(selected_product):
     if selected_product == 'climate-for-day':
         return dcc.Graph(id='climate-day-bar')
 
-
 @app.callback(
     Output('climate-day-table', 'children'),
     [Input('product', 'value')])
@@ -743,7 +739,6 @@ def display_date_selector(product_value):
                     date=today
                 )
 
-
 @app.callback(
     Output('year-picker', 'children'),
     [Input('product', 'value')])
@@ -755,9 +750,6 @@ def display_year_selector(product_value):
                     # value = str(current_year),
                     min = 1950, max = current_year
                 )
-
-
-
 
 @app.callback(Output('fyma-graph', 'figure'),
              [Input('temp-param', 'value'),
@@ -825,7 +817,6 @@ def update_fyma_graph(selected_param, df_5, max_trend, min_trend, all_data):
     )
     return {'data': trace, 'layout': layout}
 
-
 @app.callback(
     Output('graph', 'children'),
     [Input('product', 'value')])
@@ -834,6 +825,9 @@ def display_graph(value):
         return dcc.Graph(id='graph1')
     elif value == 'fyma-graph':
         return dcc.Graph(id='fyma-graph')
+    elif value == 'frs':
+        return dcc.Graph(id='frs-graph')
+    
 
 @app.callback(Output('all-data', 'children'),
             [Input('product', 'value')])
