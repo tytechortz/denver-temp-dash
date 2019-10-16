@@ -83,7 +83,7 @@ def get_layout():
                 html.Div(
                     [
                         html.Div(id='period-picker'),
-                        # html.Div(id='frs-selector-stuff')  
+                        html.Div(id='frs-graph-type-selector')  
                     ],
                 ),
                 # html.Div(
@@ -113,7 +113,7 @@ def get_layout():
                     ],
                     ),
                     html.Div([
-                        html.Div(id='frs-selector-stuff'
+                        html.Div(id='frs-bar-controls'
                         ),
                     ],
                     ),
@@ -185,37 +185,71 @@ app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
-@app.callback(Output('frs-selector-stuff', 'children'),
-             [Input('product', 'value')])
-def update_frs_graph(selected_product):
-    if selected_product == 'frs':
-        return  html.Div(id='frs-selector'), html.Div(id='bar-params')
+@app.callback(Output('frs-bar-controls', 'children'),
+             [Input('frs-graph-type', 'value')])
+def update_frs_graph(selected_graph_type):
+    if selected_graph_type == 'bar':
+        return html.Div([
+            dcc.Markdown('''
+            Select Max/Min and temperature to filter bar chart to show number of days 
+            per year above or below selected temperature.
+            '''),
+            html.Div([
+                html.Div(['Select Min/Max Temperature'], className='pretty_container'),
+                dcc.RadioItems(
+                    id='min-max-bar',
+                    options=[
+                        {'label':'Max', 'value':'TMAX'},
+                        {'label':'Min', 'value':'TMIN'},
+                    ],
+                    labelStyle={'display':'inline'}   
+                ),
+                html.Div(['Select Greater/Less Than'], className='pretty_container'),
+                dcc.RadioItems(
+                    id='greater-less-bar',
+                    options=[
+                        {'label':'>', 'value':'>'},
+                        {'label':'<', 'value':'<'},
+                    ],
+                    labelStyle={'display':'inline'}   
+                ),
+                html.Div(['Select Temperature'], className='pretty_container'),
+                dcc.Input(
+                    id='input-range',
+                    type='number',
+                    min=-30,
+                    max=100,
+                    step=5,
+                ),
+            ])
+        ],
+            className='round1'
+        ),
+        
+    
 
 
-@app.callback(Output('frs-selector', 'children'),
+@app.callback(Output('frs-graph-type-selector', 'children'),
              [Input('product', 'value')])
 def update_frs_selector(selected_product):
     print(selected_product)
     if selected_product == 'frs':
-    # if selected_param == 'bars':
-        # return html.Div([
-        #     if product_value == 'frs':
         return html.Div([
             dcc.RadioItems(
-                    id = 'frs-param',
-                    options = [
-                        {'label':'Bar Charts', 'value':'bars'},
+                    id ='frs-graph-type',
+                    options=[
+                        {'label':'Bar Charts', 'value':'bar'},
                         {'label':'Heat Maps', 'value':'heat'},
                     ],
                     # value='bars',
-                    labelStyle = {'display':'inline'}
+                    labelStyle={'display':'inline'}
                 ),
         ],
             className='pretty_container'
         ),
 
 @app.callback(Output('bar-params', 'children'),
-             [Input('frs-param', 'value')])
+             [Input('frs-graph-type', 'value')])
 def update_frs_graph(selected_param):
     if selected_param == 'bars':
         return html.Div([
