@@ -83,15 +83,14 @@ def get_layout():
                 html.Div(
                     [
                         html.Div(id='period-picker'),
+                        html.Div(id='frs-selector')
                     ],
-                    # className='pretty_container'
                 ),
-                html.Div(
-                    [
-                        html.Div(id='bar-params'),
-                    ],
-                    # className='pretty_container'
-                ),
+                # html.Div(
+                #     [
+                #         html.Div(id='bar-params'),
+                #     ],
+                # ),
                 
             ]),
             html.Div([
@@ -178,23 +177,38 @@ app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
-@app.callback(Output('bar-params', 'children'),
-             [Input('frs-param', 'value')])
-def update_frs_graph(selected_param):
-    print(selected_param)
-    if selected_param == 'bars':
+@app.callback(Output('frs-selector', 'children'),
+             [Input('product', 'value')])
+def update_frs_graph(selected_product):
+    print(selected_product)
+    if selected_product == 'frs':
+    # if selected_param == 'bars':
+        # return html.Div([
+        #     if product_value == 'frs':
         return html.Div([
             dcc.RadioItems(
-                    id = 'bar-choice',
+                    id = 'frs-param',
                     options = [
-                        {'label':'90 Degree Days', 'value':'ninety'},
+                        {'label':'Bar Charts', 'value':'bars'},
+                        {'label':'Heat Maps', 'value':'heat'},
                     ],
-                    # value = 'annual',
+                    # value='bars',
                     labelStyle = {'display':'inline'}
-                )
+                ),
         ],
             className='pretty_container'
         ),
+        #     dcc.RadioItems(
+        #             id = 'bar-choice',
+        #             options = [
+        #                 {'label':'90 Degree Days', 'value':'ninety'},
+        #             ],
+        #             # value = 'annual',
+        #             labelStyle = {'display':'inline'}
+        #         )
+        # ],
+        #     className='pretty_container'
+        # ),
         
 
 # @app.callback(Output('frs-choice', 'figure'),
@@ -804,22 +818,8 @@ def display_period_selector(product_value):
                 )
     ],
         className='pretty_container'
-    ), 
-    elif product_value == 'frs':
-        return html.Div([
-            dcc.RadioItems(
-                    id = 'frs-param',
-                    options = [
-                        {'label':'Bar Charts', 'value':'bars'},
-                        {'label':'Heat Maps', 'value':'heat'},
-                    ],
-                    # value='bars',
-                    labelStyle = {'display':'inline'}
-                ),
-    ],
-        className='pretty_container'
-    ), 
-        
+    )
+      
 @app.callback(
     Output('date-picker', 'children'),
     [Input('product', 'value')])
