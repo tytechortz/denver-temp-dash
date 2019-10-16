@@ -84,7 +84,7 @@ def get_layout():
                     [
                         html.Div(id='period-picker'),
                     ],
-                    className='pretty_container'
+                    # className='pretty_container'
                 ),
                 html.Div(
                     [
@@ -773,7 +773,8 @@ def display_climate_stuff(value):
     [Input('product', 'value')])
 def display_period_selector(product_value):
     if product_value == 'temp-graph':
-        return  dcc.RadioItems(
+        return html.Div([
+            dcc.RadioItems(
                     id = 'period',
                     options = [
                         {'label':'Annual (Jan-Dec)', 'value':'annual'},
@@ -784,9 +785,14 @@ def display_period_selector(product_value):
                     ],
                     # value = 'annual',
                     labelStyle = {'display':'inline'}
-                )
+                ),
+        ],
+            className='pretty_container'
+        ),
+        
     elif product_value == 'fyma-graph' or product_value == 'climate-for-day':
-        return  dcc.RadioItems(
+        return html.Div([
+            dcc.RadioItems(
                     id = 'temp-param',
                     options = [
                         {'label':'Max Temp', 'value':'TMAX'},
@@ -796,8 +802,12 @@ def display_period_selector(product_value):
                     value = 'TMAX',
                     labelStyle = {'display':'inline-block'}
                 )
+    ],
+        className='pretty_container'
+    ), 
     elif product_value == 'frs':
-        return dcc.RadioItems(
+        return html.Div([
+            dcc.RadioItems(
                     id = 'frs-param',
                     options = [
                         {'label':'Bar Charts', 'value':'bars'},
@@ -805,8 +815,11 @@ def display_period_selector(product_value):
                     ],
                     # value='bars',
                     labelStyle = {'display':'inline'}
-                )
-
+                ),
+    ],
+        className='pretty_container'
+    ), 
+        
 @app.callback(
     Output('date-picker', 'children'),
     [Input('product', 'value')])
