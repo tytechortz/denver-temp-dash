@@ -83,7 +83,7 @@ def get_layout():
                 html.Div(
                     [
                         html.Div(id='period-picker'),
-                        html.Div(id='frs-selector-stuff')  
+                        # html.Div(id='frs-selector-stuff')  
                     ],
                 ),
                 # html.Div(
@@ -112,6 +112,12 @@ def get_layout():
                         ),
                     ],
                     ),
+                    html.Div([
+                        html.Div(id='frs-selector-stuff'
+                        ),
+                    ],
+                    ),
+
                 ],
                     className='four columns'
                 ),    
@@ -213,59 +219,69 @@ def update_frs_selector(selected_product):
 def update_frs_graph(selected_param):
     if selected_param == 'bars':
         return html.Div([
-            dcc.RadioItems(
-                    id = 'bar-choice',
-                    options = [
-                        {'label':'100 Degree Days', 'value':'hundred'},
-                        {'label':'90 Degree Days', 'value':'ninety'},
-                    ],
-                    # value = 'annual',
-                    labelStyle = {'display':'inline'}
-                )
-        ],
-            className='pretty_container'
-        ),
+            html.Div('Select Temp'),
+            dcc.Input(
+                id='input-range',
+                type='number',
+                min=-30,
+                max=100,
+                step=5,
+            )
+        ])
+        # return html.Div([
+        #     dcc.RadioItems(
+        #             id = 'bar-choice',
+        #             options = [
+        #                 {'label':'100 Degree Days', 'value':'hundred'},
+        #                 {'label':'90 Degree Days', 'value':'ninety'},
+        #             ],
+        #             # value = 'annual',
+        #             labelStyle = {'display':'inline'}
+        #         )
+        # ],
+        #     className='pretty_container'
+        # ),
 
 @app.callback(Output('frs-bar','figure'),
              [Input('all-data','children'),
-             Input('bar-choice', 'value')])
-def update_frs_graph(all_data, selected_value):
-    print(selected_value)
+             Input('input-range', 'value')])
+def update_frs_graph(all_data, input_value):
+    print(input_value)
     all_data = pd.read_json(all_data)
     all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
     all_data.set_index(['Date'], inplace=True)
-    print(all_data)
-    df_90 = all_data.loc[all_data['TMAX']>=90]
-    df_90_count = df_90.resample('Y').count()['TMAX']
-    df_90 = pd.DataFrame({'DATE':df_90_count.index, '90 Degree Days':df_90_count.values})
-    print(df_90)
-    if selected_value == 'ninety':
-        data = [
-            go.Bar(
-                y=df_90['90 Degree Days'],
-                x=df_90['DATE'],
-                marker={'color':'dodgerblue'}               
-            )
-        ]
-        layout = go.Layout(
-                    xaxis={'title':'Year'},
-                    yaxis = {'title': '90 Degree Days'},
-                    title ='90 Degree Days Per Year',
-                    plot_bgcolor = 'lightgray',
-                    height = 500,
-            )
+    # print(all_data)
+    df = all_data.loc[all_data['TMAX']>=input_value]
+    df_count = df.resample('Y').count()['TMAX']
+    df = pd.DataFrame({'DATE':df_count.index, 'Selected Days':df_count.values})
+    print(df)
+    # if selected_value == 'ninety':
+    data = [
+        go.Bar(
+            y=df['Selected Days'],
+            x=df['DATE'],
+            marker={'color':'dodgerblue'}               
+        )
+    ]
+    layout = go.Layout(
+                xaxis={'title':'Year'},
+                yaxis = {'title': '{} Degree Days'.format(input_value)},
+                title ='{} Degree Days Per Year'.format(input_value),
+                plot_bgcolor = 'lightgray',
+                height = 500,
+        )
 
-        return {'data': data, 'layout': layout}
+    return {'data': data, 'layout': layout}
 
             
-@app.callback(Output('frs-choice', 'children'),
-             [Input('frs-param', 'value')])
-def update_frs_graph(selected_param):
-    print(selected_param)
-    if selected_param == 'bars':
-        return dcc.Graph(id='frs-bar')
-    elif selected_param == 'heat':
-        return dcc.Graph(id='frs-heat')
+# @app.callback(Output('frs-choice', 'children'),
+#              [Input('frs-param', 'value')])
+# def update_frs_graph(selected_param):
+#     print(selected_param)
+#     if selected_param == 'bars':
+#         return dcc.Graph(id='frs-bar')
+#     elif selected_param == 'heat':
+#         return dcc.Graph(id='frs-heat')
 
 
 
@@ -764,7 +780,7 @@ def display_day_bar(selected_product):
 @app.callback(
     Output('climate-day-table', 'children'),
     [Input('product', 'value')])
-def display_climate_stuff(value):
+def display_climate_table(value):
     if value == 'climate-for-day':
         return dt.DataTable(id='datatable-interactivity',
         data=[{}], 
@@ -936,8 +952,8 @@ def display_graph(value):
         return dcc.Graph(id='graph1')
     elif value == 'fyma-graph':
         return dcc.Graph(id='fyma-graph')
-    # elif value == 'frs':
-    #     return dcc.Graph(id='frs-graph')
+    elif value == 'frs':
+        return dcc.Graph(id='frs-bar')
     
 
 @app.callback(Output('all-data', 'children'),
