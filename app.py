@@ -86,6 +86,12 @@ def get_layout():
                     ],
                     className='pretty_container'
                 ),
+                html.Div(
+                    [
+                        html.Div(id='bar-params'),
+                    ],
+                    # className='pretty_container'
+                ),
                 
             ]),
             html.Div([
@@ -93,9 +99,9 @@ def get_layout():
                     html.Div(
                         id='graph'
                     ),
-                    html.Div(
-                        id='frs-choice'
-                    ),
+                #     html.Div(
+                #         id='frs-choice'
+                #     ),
                 ],
                     className='eight columns'
                 ),
@@ -172,45 +178,64 @@ app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
-@app.callback(Output('frs-choice', 'figure'),
+@app.callback(Output('bar-params', 'children'),
              [Input('frs-param', 'value')])
 def update_frs_graph(selected_param):
-    # print(selected_param)
+    print(selected_param)
     if selected_param == 'bars':
-        return dcc.Graph(id='frs-graph')
-    else:
-        return dcc.Graph(id='frs-graph')
+        return html.Div([
+            dcc.RadioItems(
+                    id = 'bar-choice',
+                    options = [
+                        {'label':'90 Degree Days', 'value':'ninety'},
+                    ],
+                    # value = 'annual',
+                    labelStyle = {'display':'inline'}
+                )
+        ],
+            className='pretty_container'
+        ),
+        
 
-@app.callback(Output('frs-graph','figure'),
-             [Input('frs-param', 'value'),
-             Input('all-data','children')])
-def update_frs_graph(choice, all_data):
-    print(choice)
-    all_data = pd.read_json(all_data)
-    all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
-    all_data.set_index(['Date'], inplace=True)
-    print(all_data)
-    df_90 = all_data.loc[all_data['TMAX']>=90]
-    df_90_count = df_90.resample('Y').count()['TMAX']
-    df_90 = pd.DataFrame({'DATE':df_90_count.index, '90 Degree Days':df_90_count.values})
-    print(df_90)
-     
-    data = [
-        go.Bar(
-            y=df_90['90 Degree Days'],
-            x=df_90['DATE'],
-            marker={'color':'dodgerblue'}               
-        )
-    ]
-    layout = go.Layout(
-                xaxis={'title':'Year'},
-                yaxis = {'title': '90 Degree Days'},
-                title ='90 Degree Days Per Year',
-                plot_bgcolor = 'lightgray',
-                height = 500,
-        )
+# @app.callback(Output('frs-choice', 'figure'),
+#              [Input('frs-param', 'value'),
+#              Input('frs-bar', 'figure')])
+# def update_frs_graph(selected_param, selection):
+#     # print(selected_param)
+#     if selected_param == 'bars':
+#         return dcc.Graph(id='frs-bar')
+#     elif selected_param == 'heat':
+#         return dcc.Graph(id='frs-heat')
 
-    return {'data': data, 'layout': layout}
+# @app.callback(Output('frs-bar','figure'),
+#              [Input('all-data','children')])
+# def update_frs_graph(all_data):
+#     # print(choice)
+#     all_data = pd.read_json(all_data)
+#     all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
+#     all_data.set_index(['Date'], inplace=True)
+#     print(all_data)
+#     df_90 = all_data.loc[all_data['TMAX']>=90]
+#     df_90_count = df_90.resample('Y').count()['TMAX']
+#     df_90 = pd.DataFrame({'DATE':df_90_count.index, '90 Degree Days':df_90_count.values})
+#     print(df_90)
+#     # if choice == 'bars':
+#     data = [
+#         go.Bar(
+#             y=df_90['90 Degree Days'],
+#             x=df_90['DATE'],
+#             marker={'color':'dodgerblue'}               
+#         )
+#     ]
+#     layout = go.Layout(
+#                 xaxis={'title':'Year'},
+#                 yaxis = {'title': '90 Degree Days'},
+#                 title ='90 Degree Days Per Year',
+#                 plot_bgcolor = 'lightgray',
+#                 height = 500,
+#         )
+
+#     return {'data': data, 'layout': layout}
 
 @app.callback(
     Output('graph-stats', 'children'),
@@ -757,7 +782,7 @@ def display_period_selector(product_value):
                         {'label':'Summer (Jun-Aug)', 'value':'summer'},
                         {'label':'Fall (Sep-Nov)', 'value':'fall'},
                     ],
-                    value = 'annual',
+                    # value = 'annual',
                     labelStyle = {'display':'inline'}
                 )
     elif product_value == 'fyma-graph' or product_value == 'climate-for-day':
@@ -778,6 +803,7 @@ def display_period_selector(product_value):
                         {'label':'Bar Charts', 'value':'bars'},
                         {'label':'Heat Maps', 'value':'heat'},
                     ],
+                    # value='bars',
                     labelStyle = {'display':'inline'}
                 )
 
@@ -801,7 +827,7 @@ def display_year_selector(product_value):
         return html.P('Enter Year (YYYY)') ,dcc.Input(
                     id = 'year',
                     type = 'number',
-                    # value = str(current_year),
+                    value = str(current_year),
                     min = 1950, max = current_year
                 )
 
@@ -879,8 +905,8 @@ def display_graph(value):
         return dcc.Graph(id='graph1')
     elif value == 'fyma-graph':
         return dcc.Graph(id='fyma-graph')
-    elif value == 'frs':
-        return dcc.Graph(id='frs-graph')
+    # elif value == 'frs':
+    #     return dcc.Graph(id='frs-graph')
     
 
 @app.callback(Output('all-data', 'children'),
