@@ -67,6 +67,7 @@ def get_layout():
                             {'label':'Climatology for a day', 'value':'climate-for-day'},
                             {'label':'Full Record Bar Graphs', 'value':'frbg'},
                             {'label':'5 Year Moving Avgs', 'value':'fyma-graph'},
+                            {'label':'Full Record Heat Map', 'value':'frhm'},
                         ],
                         # value='temp-graph',
                         labelStyle={'display': 'block'},
@@ -183,23 +184,24 @@ app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
-@app.callback(Output('frs-graph-choice', 'children'),
-             [Input('product', 'value')])
-def select_frs_graph(selected_product):
-    if selected_product == 'frs':
-        return html.Div([
-            dcc.RadioItems(
-                    id ='frs-graph-type',
-                    options=[
-                        {'label':'Bar Charts', 'value':'bar'},
-                        {'label':'Heat Maps', 'value':'heat'},
-                    ],
-                    # value='bars',
-                    labelStyle={'display':'inline'}
-                ),
-        ],
-            className='pretty_container'
-        ), 
+@app.callback(Output('frs-heat', 'figure'),
+            [Input('all-data', 'children')])
+def update_heat_map(all_data):
+    all_data = pd.read_json(all_data)
+    all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
+    all_data.set_index(['Date'], inplace=True)
+    print(all_data)
+
+
+    return {
+        'data': traces,
+        'layout': go.Layout(
+            title='{} Departure From Norm'.format(param),
+            xaxis={'title':'MONTH'},
+            yaxis={'title':'DAY'},
+            height= 400
+        )
+    }
 
 @app.callback(Output('frs-bar-controls', 'children'),
              [Input('product', 'value'),
@@ -257,8 +259,8 @@ def bar_container_styler(m_m):
         return 'pretty_container'
     
 
-@app.callback(Output('frs-bar','figure'),
-             [Input('all-data','children'),
+@app.callback(Output('frs-bar', 'figure'),
+             [Input('all-data', 'children'),
              Input('input-range', 'value'),
              Input('greater-less-bar', 'value'),
              Input('min-max-bar', 'value')])
@@ -961,6 +963,8 @@ def display_graph(value):
     elif value == 'fyma-graph':
         return dcc.Graph(id='fyma-graph')
     elif value == 'frbg':
+        return dcc.Graph(id='frs-bar')
+    elif value == 'frhm':
         return dcc.Graph(id='frs-bar')
     
 
