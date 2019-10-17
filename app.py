@@ -117,6 +117,11 @@ def get_layout():
                         ),
                     ],
                     ),
+                    html.Div([
+                        html.Div(id='frs-heat-controls'
+                        ),
+                    ],
+                    ),
 
                 ],
                     className='four columns'
@@ -187,18 +192,21 @@ app.config['suppress_callback_exceptions']=True
 @app.callback(Output('frs-heat', 'figure'),
             [Input('all-data', 'children'),
             Input('heat-param', 'value'),
+            Input('month', 'value'),
             Input('product', 'value')])
-def update_heat_map(all_data, selected_value, selected_product):
+def update_heat_map(all_data, selected_value, month, selected_product):
     traces = []
     all_data = pd.read_json(all_data)
     all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
     all_data.set_index(['Date'], inplace=True)
     print(all_data)
+    # new_df = all_data.groupby([(all_data.index.year),(all_data.index.month)]).sum()
+    print(new_df)
 
     if selected_value == 'TMAX':
         traces.append(go.Heatmap(
-                y=all_data.index.day,
-                x=all_data.index.month,
+                y=all_data.index.month,
+                x=all_data.index.year,
                 z=all_data['TMAX'],
                 colorscale=[[0, 'blue'],[.5, 'white'], [1, 'red']]
             ))
@@ -207,11 +215,54 @@ def update_heat_map(all_data, selected_value, selected_product):
         'data': traces,
         'layout': go.Layout(
             # title='{} Departure From Norm'.format(param),
-            xaxis={'title':'MONTH'},
-            yaxis={'title':'DAY'},
+            xaxis={'title':'YEAR'},
+            yaxis={'title':'MONTH'},
             # height= 400
         )
     }
+@app.callback(Output('frs-heat-controls', 'children'),
+             [Input('product', 'value')])
+def update_frs_graph(selected_product):
+    months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+    # options = []
+    # options.append(month for month in months)
+    if selected_product == 'frhm':
+        return html.Div([
+            dcc.Markdown('''
+            Select Month to compare months across the record period.
+            '''),
+            html.Div([
+                html.Div(['Select Month'], className='pretty_container'),
+                dcc.Dropdown(
+                    id='heat-month',
+                    options=[{'label': i, 'value': i} for i in months],
+                    # labelStyle={'display':'inline'},
+                    value='JAN'   
+                ),
+                html.Div(['Select Greater/Less Than'], className='pretty_container'),
+                dcc.RadioItems(
+                    id='greater-less-bar',
+                    options=[
+                        {'label':'>=', 'value':'>='},
+                        {'label':'<', 'value':'<'},
+                    ],
+                    labelStyle={'display':'inline'},
+                    value='>='   
+                ),
+                html.Div(['Select Temperature'], className='pretty_container'),
+                dcc.Input(
+                    id='input-range',
+                    type='number',
+                    min=-30,
+                    max=100,
+                    step=5,
+                    # value=90
+                ),
+            ])
+        ],
+            className='round1'
+        ),
+        
 
 @app.callback(Output('frs-bar-controls', 'children'),
              [Input('product', 'value'),
