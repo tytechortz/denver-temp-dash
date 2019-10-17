@@ -36,6 +36,7 @@ def get_layout():
                     className='twelve columns',
                     style={'text-align': 'center'}
                 ),
+                html.Div("NOAA Stapleton weather station data")
             ],
                 className='row'
             ),
@@ -56,7 +57,7 @@ def get_layout():
                         options=[
                             {'label':'Temperature graphs', 'value':'temp-graph'},
                             {'label':'Climatology for a day', 'value':'climate-for-day'},
-                            {'label':'Full Record Stuff', 'value':'frs'},
+                            {'label':'Full Record Bar Graphs', 'value':'frbg'},
                             {'label':'5 Year Moving Avgs', 'value':'fyma-graph'},
                         ],
                         # value='temp-graph',
@@ -66,7 +67,6 @@ def get_layout():
                     className='three columns',
                 ),
                 html.Div([
-                    # html.Label('Options'),
                     html.Div(
                         id='year-picker'
                     ),
@@ -83,15 +83,9 @@ def get_layout():
                 html.Div(
                     [
                         html.Div(id='period-picker'),
-                        html.Div(id='frs-graph-type-selector')  
                     ],
                 ),
-                # html.Div(
-                #     [
-                #         html.Div(id='bar-params'),
-                #     ],
-                # ),
-                
+    
             ],
                 className='row'
             ),
@@ -99,9 +93,6 @@ def get_layout():
                 html.Div([
                     html.Div(
                         id='graph'
-                    ),
-                    html.Div(
-                        id='frs-choice'
                     ),
                 ],
                     className='eight columns'
@@ -134,15 +125,12 @@ def get_layout():
                 ),
                 html.Div([
                     html.Div([
-                        html.Div(id='daily-max-t'),
+                        html.Div(
+                            id='bar'
+                        ),
                     ],
-                        className='twelve columns'
+                    className='twelve columns'
                     ),
-                    html.Div([
-                        html.Div(id='daily-min-t'),
-                    ],
-                        className='twelve columns'
-                    ), 
                 ],
                     className='seven columns'
                 ),     
@@ -151,16 +139,18 @@ def get_layout():
             ),
             html.Div([
                 html.Div([
-                    html.Div(
-                        id='bar'
+                        html.Div(id='daily-max-t'),
+                    ],
+                        className='six columns'
                     ),
-                ],
-                    className='eight columns'
-                ),
+                    html.Div([
+                        html.Div(id='daily-min-t'),
+                    ],
+                        className='six columns'
+                    ), 
             ],
                 className='row'
             ),
-            # html.Div(id='frs-choice'),
             
             html.Div(id='all-data', style={'display': 'none'}),
             html.Div(id='rec-highs', style={'display': 'none'}),
@@ -177,7 +167,7 @@ def get_layout():
             html.Div(id='avg-of-dly-lows', style={'display': 'none'}),
             html.Div(id='d-max-min', style={'display': 'none'}),
             html.Div(id='temps', style={'display': 'none'}),
-            # html.Div(id='frs-choice', style={'display': 'none'}),
+            html.Div(id='bar-control-container-style', style={'display': 'none'}),
         ]
     )
 
@@ -185,54 +175,9 @@ app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
-@app.callback(Output('frs-bar-controls', 'children'),
-             [Input('frs-graph-type', 'value')])
-def update_frs_graph(selected_graph_type):
-    if selected_graph_type == 'bar':
-        return html.Div([
-            dcc.Markdown('''
-            Select Max/Min and temperature to filter bar chart to show number of days 
-            per year above or below selected temperature.
-            '''),
-            html.Div([
-                html.Div(['Select Min/Max Temperature'], className='pretty_container'),
-                dcc.RadioItems(
-                    id='min-max-bar',
-                    options=[
-                        {'label':'Max', 'value':'TMAX'},
-                        {'label':'Min', 'value':'TMIN'},
-                    ],
-                    labelStyle={'display':'inline'}   
-                ),
-                html.Div(['Select Greater/Less Than'], className='pretty_container'),
-                dcc.RadioItems(
-                    id='greater-less-bar',
-                    options=[
-                        {'label':'>', 'value':'>'},
-                        {'label':'<', 'value':'<'},
-                    ],
-                    labelStyle={'display':'inline'}   
-                ),
-                html.Div(['Select Temperature'], className='pretty_container'),
-                dcc.Input(
-                    id='input-range',
-                    type='number',
-                    min=-30,
-                    max=100,
-                    step=5,
-                ),
-            ])
-        ],
-            className='round1'
-        ),
-        
-    
-
-
-@app.callback(Output('frs-graph-type-selector', 'children'),
+@app.callback(Output('frs-graph-choice', 'children'),
              [Input('product', 'value')])
-def update_frs_selector(selected_product):
-    print(selected_product)
+def select_frs_graph(selected_product):
     if selected_product == 'frs':
         return html.Div([
             dcc.RadioItems(
@@ -246,50 +191,81 @@ def update_frs_selector(selected_product):
                 ),
         ],
             className='pretty_container'
+        ), 
+
+@app.callback(Output('frs-bar-controls', 'children'),
+             [Input('product', 'value'),
+             Input('bar-control-container-style','value')])
+def update_frs_graph(selected_product, container):
+    container = container
+    print(container)
+    if selected_product == 'frbg':
+        return html.Div([
+            dcc.Markdown('''
+            Select Max/Min and temperature to filter bar chart to show number of days 
+            per year above or below selected temperature.
+            '''),
+            html.Div([
+                html.Div(['Select Min/Max Temperature'], className='pretty_container'),
+                dcc.RadioItems(
+                    id='min-max-bar',
+                    options=[
+                        {'label':'Max', 'value':'TMAX'},
+                        {'label':'Min', 'value':'TMIN'},
+                    ],
+                    labelStyle={'display':'inline'},
+                    value='TMAX'   
+                ),
+                html.Div(['Select Greater/Less Than'], className='pretty_container'),
+                dcc.RadioItems(
+                    id='greater-less-bar',
+                    options=[
+                        {'label':'>=', 'value':'>='},
+                        {'label':'<', 'value':'<'},
+                    ],
+                    labelStyle={'display':'inline'},
+                    value='>='   
+                ),
+                html.Div(['Select Temperature'], className='pretty_container'),
+                dcc.Input(
+                    id='input-range',
+                    type='number',
+                    min=-30,
+                    max=100,
+                    step=5,
+                    # value=90
+                ),
+            ])
+        ],
+            className='round1'
         ),
 
-@app.callback(Output('bar-params', 'children'),
-             [Input('frs-graph-type', 'value')])
-def update_frs_graph(selected_param):
-    if selected_param == 'bars':
-        return html.Div([
-            html.Div('Select Temp'),
-            dcc.Input(
-                id='input-range',
-                type='number',
-                min=-30,
-                max=100,
-                step=5,
-            )
-        ])
-        # return html.Div([
-        #     dcc.RadioItems(
-        #             id = 'bar-choice',
-        #             options = [
-        #                 {'label':'100 Degree Days', 'value':'hundred'},
-        #                 {'label':'90 Degree Days', 'value':'ninety'},
-        #             ],
-        #             # value = 'annual',
-        #             labelStyle = {'display':'inline'}
-        #         )
-        # ],
-        #     className='pretty_container'
-        # ),
+@app.callback(Output('bar-control-container-style','figure'),
+             [Input('min-max-bar', 'value')])
+def bar_container_styler(m_m):
+    temp = m_m
+    # print(temp)
+    if temp == 'TMAX':
+        return 'pretty_container'
+    
 
 @app.callback(Output('frs-bar','figure'),
              [Input('all-data','children'),
-             Input('input-range', 'value')])
-def update_frs_graph(all_data, input_value):
-    print(input_value)
+             Input('input-range', 'value'),
+             Input('greater-less-bar', 'value'),
+             Input('min-max-bar', 'value')])
+def update_frs_graph(all_data, input_value, g_l, min_max):
+    # print(input_value)
     all_data = pd.read_json(all_data)
     all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
     all_data.set_index(['Date'], inplace=True)
-    # print(all_data)
-    df = all_data.loc[all_data['TMAX']>=input_value]
-    df_count = df.resample('Y').count()['TMAX']
+    if g_l == '>=':
+        df = all_data.loc[all_data[min_max]>=input_value]
+    else:
+        df = all_data.loc[all_data[min_max]<input_value]
+    df_count = df.resample('Y').count()[min_max]
     df = pd.DataFrame({'DATE':df_count.index, 'Selected Days':df_count.values})
-    print(df)
-    # if selected_value == 'ninety':
+    
     data = [
         go.Bar(
             y=df['Selected Days'],
@@ -306,17 +282,6 @@ def update_frs_graph(all_data, input_value):
         )
 
     return {'data': data, 'layout': layout}
-
-            
-# @app.callback(Output('frs-choice', 'children'),
-#              [Input('frs-param', 'value')])
-# def update_frs_graph(selected_param):
-#     print(selected_param)
-#     if selected_param == 'bars':
-#         return dcc.Graph(id='frs-bar')
-#     elif selected_param == 'heat':
-#         return dcc.Graph(id='frs-heat')
-
 
 
 @app.callback(
@@ -585,25 +550,25 @@ def max_stats(product, d_max_max, admaxh, d_min_max):
     if product == 'climate-for-day':
         return html.Div([
             html.Div([
-                html.H6('Maximum Temperatures', style={'text-align':'center', 'color':'red'})
+                html.Div('Maximum Temperatures', style={'text-align':'center', 'color':'red'})
             ]),
             html.Div([
                 html.Div([
                     html.Div([
-                        html.H6('Maximum', style={'text-align':'center', 'color': 'red'}),
-                        html.H6('{}'.format(dly_max_max), style={'text-align':'center'})
+                        html.Div('Maximum', style={'text-align':'center', 'color': 'red'}),
+                        html.Div('{}'.format(dly_max_max), style={'text-align':'center'})
                     ],
                         className='round1 four columns'
                     ),
                     html.Div([
-                        html.H6('Average', style={'text-align':'center', 'color': 'red'}),
-                        html.H6('{:.0f}'.format(admaxh), style={'text-align':'center'})
+                        html.Div('Average', style={'text-align':'center', 'color': 'red'}),
+                        html.Div('{:.0f}'.format(admaxh), style={'text-align':'center'})
                     ],
                         className='round1 four columns'
                     ),
                     html.Div([
-                        html.H6('Minimum', style={'text-align':'center', 'color': 'red'}),
-                        html.H6('{}'.format(dly_min_max), style={'text-align':'center'})
+                        html.Div('Minimum', style={'text-align':'center', 'color': 'red'}),
+                        html.Div('{}'.format(dly_min_max), style={'text-align':'center'})
                     ],
                         className='round1 four columns'
                     ),
@@ -631,25 +596,25 @@ def min_stats(product, d_min_min, adminl, d_max_min):
     if product == 'climate-for-day':
         return html.Div([
             html.Div([
-                html.H6('Minimum Temperatures', style={'text-align':'center', 'color':'blue'})
+                html.Div('Minimum Temperatures', style={'text-align':'center', 'color':'blue'})
             ]),
             html.Div([
                 html.Div([
                     html.Div([
-                        html.H6('Minimum', style={'text-align':'center', 'color': 'blue'}),
-                        html.H6('{}'.format(dly_min_min), style={'text-align':'center'})
+                        html.Div('Minimum', style={'text-align':'center', 'color': 'blue'}),
+                        html.Div('{}'.format(dly_min_min), style={'text-align':'center'})
                     ],
                         className='round1 four columns'
                     ),
                     html.Div([
-                        html.H6('Average', style={'text-align':'center', 'color': 'blue'}),
-                        html.H6('{:.0f}'.format(adminl), style={'text-align':'center'})
+                        html.Div('Average', style={'text-align':'center', 'color': 'blue'}),
+                        html.Div('{:.0f}'.format(adminl), style={'text-align':'center'})
                     ],
                         className='round1 four columns'
                     ),
                     html.Div([
-                        html.H6('Maximum', style={'text-align':'center', 'color': 'blue'}),
-                        html.H6('{}'.format(dly_max_min), style={'text-align':'center'})
+                        html.Div('Maximum', style={'text-align':'center', 'color': 'blue'}),
+                        html.Div('{}'.format(dly_max_min), style={'text-align':'center'})
                     ],
                         className='round1 four columns'
                     ),
@@ -801,6 +766,7 @@ def climate_day_graph(selected_date, all_data, selected_param, selected_product)
         yaxis={'title': 'Deg F'},
         title='{} for {}'.format(selected_param,title_param),
         plot_bgcolor = 'lightgray',
+        height=340
     )
     return {'data': data, 'layout': layout} 
 
@@ -986,7 +952,7 @@ def display_graph(value):
         return dcc.Graph(id='graph1')
     elif value == 'fyma-graph':
         return dcc.Graph(id='fyma-graph')
-    elif value == 'frs':
+    elif value == 'frbg':
         return dcc.Graph(id='frs-bar')
     
 

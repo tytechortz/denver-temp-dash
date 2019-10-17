@@ -119,13 +119,13 @@
     font-weight: 400;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     color: rgb(50, 50, 50);
-    background-color: rgba(204, 213, 240, 0.781);
+    background-color: rgba(199, 201, 206, 0.781);
     margin: 5%;
     /* zoom: 0.8 */
   }
   .pretty_container {
     border-radius: 5px;
-    background-color: rgb(126, 176, 241);
+    background-color: rgb(182, 210, 248);
     margin: 5px;
     padding: 15px;
     position: relative;
