@@ -284,7 +284,7 @@ def update_frs_graph(all_data, input_value, g_l, min_max):
     layout = go.Layout(
                 xaxis={'title':'Year'},
                 yaxis = {'title': '{} Degree Days'.format(input_value)},
-                title ='{} Degree Days Per Year'.format(input_value),
+                title ='Days Where {} is {} {} Degrees F'.format(min_max, g_l, input_value),
                 plot_bgcolor = 'lightgray',
                 height = 500,
         )
