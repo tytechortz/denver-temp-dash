@@ -185,21 +185,31 @@ app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
 @app.callback(Output('frs-heat', 'figure'),
-            [Input('all-data', 'children')])
-def update_heat_map(all_data):
+            [Input('all-data', 'children'),
+            Input('heat-param', 'value'),
+            Input('product', 'value')])
+def update_heat_map(all_data, selected_value, selected_product):
+    traces = []
     all_data = pd.read_json(all_data)
     all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
     all_data.set_index(['Date'], inplace=True)
     print(all_data)
 
-
+    if selected_value == 'TMAX':
+        traces.append(go.Heatmap(
+                y=all_data.index.day,
+                x=all_data.index.month,
+                z=all_data['TMAX'],
+                colorscale=[[0, 'blue'],[.5, 'white'], [1, 'red']]
+            ))
+    # return(print(selected_product))
     return {
         'data': traces,
         'layout': go.Layout(
-            title='{} Departure From Norm'.format(param),
+            # title='{} Departure From Norm'.format(param),
             xaxis={'title':'MONTH'},
             yaxis={'title':'DAY'},
-            height= 400
+            # height= 400
         )
     }
 
@@ -254,7 +264,6 @@ def update_frs_graph(selected_product, container):
              [Input('min-max-bar', 'value')])
 def bar_container_styler(m_m):
     temp = m_m
-    # print(temp)
     if temp == 'TMAX':
         return 'pretty_container'
     
@@ -265,10 +274,11 @@ def bar_container_styler(m_m):
              Input('greater-less-bar', 'value'),
              Input('min-max-bar', 'value')])
 def update_frs_graph(all_data, input_value, g_l, min_max):
-    # print(input_value)
+    
     all_data = pd.read_json(all_data)
     all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
     all_data.set_index(['Date'], inplace=True)
+    print(all_data)
     if g_l == '>=':
         df = all_data.loc[all_data[min_max]>=input_value]
     else:
@@ -556,7 +566,6 @@ def max_stats(product, d_max_max, admaxh, d_min_max):
     dly_max_max = d_max_max
     admaxh = admaxh
     dly_min_max = d_min_max
-    # print(dly_max_max)
     if product == 'climate-for-day':
         return html.Div([
             html.Div([
@@ -655,12 +664,9 @@ def display_climate_day_table(all_data, selected_date):
     dr['Date'] = pd.to_datetime(dr['Date'], unit='ms')
     # dr['Date']=dr['Date'].dt.strftime("%Y-%m-%d") 
     dr.set_index(['Date'], inplace=True)
-    # print(dr)
-    # print(selected_date)
     dr = dr[(dr.index.month == int(selected_date[5:7])) & (dr.index.day == int(selected_date[8:10]))]
     # dr = df_all_temps[(df_all_temps['Date'][5:7] == date[5:7]) & (df_all_temps['Date'][8:10] == date[8:10])]
     dr = dr.reset_index()
-    # print(dr)
     columns=[
         {"name": i, "id": i,"selectable": True} for i in dr.columns
     ]
@@ -669,7 +675,6 @@ def display_climate_day_table(all_data, selected_date):
     d_max_max = dr['TMAX'].max()
     avg_of_dly_highs = dr['TMAX'].mean()
     d_min_max = dr['TMAX'].min()
-    # print(avg_of_dly_highs)
     d_min_min = dr['TMIN'].min()
     avg_of_dly_lows = dr['TMIN'].mean()
     d_max_min = dr['TMIN'].max()
@@ -846,8 +851,7 @@ def display_period_selector(product_value):
                 ),
         ],
             className='pretty_container'
-        ),
-        
+        ), 
     elif product_value == 'fyma-graph' or product_value == 'climate-for-day':
         return html.Div([
             dcc.RadioItems(
@@ -862,7 +866,22 @@ def display_period_selector(product_value):
                 )
     ],
         className='pretty_container'
-    )
+    ),
+    elif product_value == 'frhm':
+        return html.Div([
+            dcc.RadioItems(
+                    id = 'heat-param',
+                    options = [
+                        {'label':'Max Temp', 'value':'TMAX'},
+                        {'label':'Min Temp', 'value':'TMIN'},
+                    ],
+                    # value = 'TMAX',
+                    labelStyle = {'display':'inline-block'}
+                )
+    ],
+        className='pretty_container'
+    ),
+
       
 @app.callback(
     Output('date-picker', 'children'),
@@ -895,7 +914,6 @@ def display_year_selector(product_value):
              Input('min-trend', 'children'),
              Input('all-data', 'children')])
 def update_fyma_graph(selected_param, df_5, max_trend, min_trend, all_data):
-    # print(all_data)
     fyma_temps = pd.read_json(all_data)
     fyma_temps['Date'] = pd.to_datetime(fyma_temps['Date'], unit='ms')
     # fyma_temps['Date']=fyma_temps['Date'].dt.strftime("%Y-%m-%d") 
@@ -965,7 +983,7 @@ def display_graph(value):
     elif value == 'frbg':
         return dcc.Graph(id='frs-bar')
     elif value == 'frhm':
-        return dcc.Graph(id='frs-bar')
+        return dcc.Graph(id='frs-heat')
     
 
 @app.callback(Output('all-data', 'children'),
