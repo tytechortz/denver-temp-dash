@@ -36,7 +36,15 @@ def get_layout():
                     className='twelve columns',
                     style={'text-align': 'center'}
                 ),
-                html.Div("NOAA Stapleton weather station data")
+            ],
+                className='row'
+            ),
+            html.Div([
+                html.Div(
+                    'NOAA Stapleton Station Data',
+                    className='twelve columns',
+                    style={'text-align': 'center'}
+                ),
             ],
                 className='row'
             ),
