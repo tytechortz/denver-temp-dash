@@ -181,7 +181,6 @@ def get_layout():
             html.Div(id='avg-of-dly-lows', style={'display': 'none'}),
             html.Div(id='d-max-min', style={'display': 'none'}),
             html.Div(id='temps', style={'display': 'none'}),
-            html.Div(id='bar-control-container-style', style={'display': 'none'}),
         ]
     )
 
@@ -219,7 +218,7 @@ def update_heat_map(all_data, selected_value, normals, selected_product):
     res = pd.merge(new_all_data.assign(grouper=new_all_data.index.month),
                    heat_norms.assign(grouper=heat_norms.index.month),
                    how='left', on='grouper')
-    print(res)
+   
     res['TMAX_DIFF'] = res['TMAX'] - res['TMAX_AVG']
     res['TMIN_DIFF'] = res['TMIN'] - res['TMIN_AVG']
     res['TAVG_DIFF'] = res['TAVG'] - res['TAVG_AVG']
@@ -258,6 +257,7 @@ def update_heat_map(all_data, selected_value, normals, selected_product):
             # height= 400
         )
     }
+
 @app.callback(Output('frs-heat-controls', 'children'),
              [Input('product', 'value')])
 def update_frs_heat_graph(selected_product):
@@ -285,11 +285,8 @@ def update_frs_heat_graph(selected_product):
         ),
         
 @app.callback(Output('frs-bar-controls', 'children'),
-             [Input('product', 'value'),
-             Input('bar-control-container-style','value')])
-def update_frs_graph(selected_product, container):
-    container = container
-    print(container)
+             [Input('product', 'value')])
+def update_frs_graph(selected_product,):
     if selected_product == 'frbg':
         return html.Div([
             dcc.Markdown('''
@@ -330,13 +327,6 @@ def update_frs_graph(selected_product, container):
         ],
             className='round1'
         ),
-
-@app.callback(Output('bar-control-container-style','figure'),
-             [Input('min-max-bar', 'value')])
-def bar_container_styler(m_m):
-    temp = m_m
-    if temp == 'TMAX':
-        return 'pretty_container'
     
 @app.callback(Output('frs-bar', 'figure'),
              [Input('all-data', 'children'),
@@ -484,7 +474,6 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
     df_rh_cy = df_record_highs_ly[:len(temps_cy.index)]
 
     df_norms = pd.read_json(norms)
-    print(df_norms)
     if selected_year % 4 == 0:
         df_norms = df_norms
     else:
@@ -926,7 +915,7 @@ def display_period_selector(product_value):
         ],
             className='pretty_container'
         ), 
-    elif product_value == 'fyma-graph' or product_value == 'climate-for-day':
+    elif product_value == 'climate-for-day':
         return html.Div([
             dcc.RadioItems(
                     id = 'temp-param',
@@ -941,21 +930,20 @@ def display_period_selector(product_value):
     ],
         className='pretty_container'
     ),
-    # elif product_value == 'frhm':
-    #     return html.Div([
-    #         dcc.RadioItems(
-    #                 id = 'heat-param',
-    #                 options = [
-    #                     {'label':'Max Temp', 'value':'TMAX'},
-    #                     {'label':'Min Temp', 'value':'TMIN'},
-    #                 ],
-    #                 # value = 'TMAX',
-    #                 labelStyle = {'display':'inline-block'}
-    #             )
-    # ],
-    #     className='pretty_container'
-    # ),
-
+    elif product_value == 'fyma-graph':
+        return html.Div([
+            dcc.RadioItems(
+                    id = 'fyma-param',
+                    options = [
+                        {'label':'Max Temp', 'value':'TMAX'},
+                        {'label':'Min Temp', 'value':'TMIN'},
+                    ],
+                    # value = 'TMAX',
+                    labelStyle = {'display':'inline-block'}
+                )
+    ],
+        className='pretty_container'
+    ),
       
 @app.callback(
     Output('date-picker', 'children'),
@@ -982,7 +970,7 @@ def display_year_selector(product_value):
                 )
 
 @app.callback(Output('fyma-graph', 'figure'),
-             [Input('temp-param', 'value'),
+             [Input('fyma-param', 'value'),
              Input('df5', 'children'),
              Input('max-trend', 'children'),
              Input('min-trend', 'children'),
@@ -1104,10 +1092,6 @@ def rec_low_temps(selected_year):
              [Input('product', 'value')])
 def norm_highs(product):
     norms = df_norms
-    # if int(selected_year) % 4 == 0:
-    #     norms = df_norms
-    # else:
-    #     norms = df_norms.drop(df_norms.index[59])
     return norms.to_json()
 
 @app.callback(
