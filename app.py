@@ -192,16 +192,21 @@ app.config['suppress_callback_exceptions']=True
 @app.callback(Output('frs-heat', 'figure'),
             [Input('all-data', 'children'),
             Input('heat-param', 'value'),
-            Input('month', 'value'),
+            Input('heat-month', 'value'),
             Input('product', 'value')])
 def update_heat_map(all_data, selected_value, month, selected_product):
+    print(selected_value)
     traces = []
+    month_values = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12}
     all_data = pd.read_json(all_data)
     all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
     all_data.set_index(['Date'], inplace=True)
     print(all_data)
-    # new_df = all_data.groupby([(all_data.index.year),(all_data.index.month)]).sum()
-    print(new_df)
+    print(month_values.get(month))
+    # dr = dr[(dr.index.month == int(selected_date[5:7])) & (dr.index.day == int(selected_date[8:10]))]
+    all_data = all_data[all_data.index.month == (month_values.get(month))]
+    # all_data = all_data[(all_data.index.month == 1)]
+    print(all_data)
 
     if selected_value == 'TMAX':
         traces.append(go.Heatmap(
@@ -224,14 +229,21 @@ def update_heat_map(all_data, selected_value, month, selected_product):
              [Input('product', 'value')])
 def update_frs_graph(selected_product):
     months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-    # options = []
-    # options.append(month for month in months)
     if selected_product == 'frhm':
         return html.Div([
             dcc.Markdown('''
             Select Month to compare months across the record period.
             '''),
             html.Div([
+                dcc.RadioItems(
+                    id='heat-param',
+                    options=[
+                        {'label':'TMAX', 'value':'TMAX'},
+                        {'label':'TMIN', 'value':'TMIN'},
+                    ],
+                    labelStyle={'display':'inline'},
+                    value='TMAX'   
+                ),
                 html.Div(['Select Month'], className='pretty_container'),
                 dcc.Dropdown(
                     id='heat-month',
@@ -239,25 +251,17 @@ def update_frs_graph(selected_product):
                     # labelStyle={'display':'inline'},
                     value='JAN'   
                 ),
-                html.Div(['Select Greater/Less Than'], className='pretty_container'),
-                dcc.RadioItems(
-                    id='greater-less-bar',
-                    options=[
-                        {'label':'>=', 'value':'>='},
-                        {'label':'<', 'value':'<'},
-                    ],
-                    labelStyle={'display':'inline'},
-                    value='>='   
-                ),
-                html.Div(['Select Temperature'], className='pretty_container'),
-                dcc.Input(
-                    id='input-range',
-                    type='number',
-                    min=-30,
-                    max=100,
-                    step=5,
-                    # value=90
-                ),
+                # html.Div(['Select Greater/Less Than'], className='pretty_container'),
+                
+                # html.Div(['Select Temperature'], className='pretty_container'),
+                # dcc.Input(
+                #     id='input-range',
+                #     type='number',
+                #     min=-30,
+                #     max=100,
+                #     step=5,
+                #     # value=90
+                # ),
             ])
         ],
             className='round1'
@@ -918,20 +922,20 @@ def display_period_selector(product_value):
     ],
         className='pretty_container'
     ),
-    elif product_value == 'frhm':
-        return html.Div([
-            dcc.RadioItems(
-                    id = 'heat-param',
-                    options = [
-                        {'label':'Max Temp', 'value':'TMAX'},
-                        {'label':'Min Temp', 'value':'TMIN'},
-                    ],
-                    # value = 'TMAX',
-                    labelStyle = {'display':'inline-block'}
-                )
-    ],
-        className='pretty_container'
-    ),
+    # elif product_value == 'frhm':
+    #     return html.Div([
+    #         dcc.RadioItems(
+    #                 id = 'heat-param',
+    #                 options = [
+    #                     {'label':'Max Temp', 'value':'TMAX'},
+    #                     {'label':'Min Temp', 'value':'TMIN'},
+    #                 ],
+    #                 # value = 'TMAX',
+    #                 labelStyle = {'display':'inline-block'}
+    #             )
+    # ],
+    #     className='pretty_container'
+    # ),
 
       
 @app.callback(
