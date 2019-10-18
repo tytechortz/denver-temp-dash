@@ -189,52 +189,95 @@ app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
+# @app.callback(Output('cleaned-norms', 'children'),
+#               [Input('product', 'value')])
+# def make_clean_norms(selected_product):
+#     2016 % 4 == 0:
+#         heat_norms = df_norms
+#     else:
+#         heat_norms = df_norms.drop(df_norms.index[59])
+
+#     heat_norms[2] = pd.to_datetime(heat_norms[2])
+#     heat_norms.set_index([2], inplace=True)
+#     heat_norms_cleaned = heat_norms.drop([0,1], axis=1)
+#     print(heat_norms_cleaned)
+#     heat_norms_new = pd.DataFrame()
+#     heat_norms_new['TMAX_AVG'] = heat_norms_cleaned[3].resample('M').mean()
+#     heat_norms_new['TMIN_AVG'] = heat_norms_cleaned[4].resample('M').mean()
+#     heat_norms_new['TAVG_AVG'] = heat_norms_cleaned[5].resample('M').mean()
+
+#     return 
+
 @app.callback(Output('frs-heat', 'figure'),
             [Input('all-data', 'children'),
             Input('heat-param', 'value'),
-            Input('heat-month', 'value'),
-            Input('heat-year', 'value'),
+            Input('norms', 'children'),
             Input('product', 'value')])
-def update_heat_map(all_data, selected_value, month, selected_year,selected_product):
+def update_heat_map(all_data, selected_value, normals, selected_product):
     traces = []
     month_values = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12}
     all_data = pd.read_json(all_data)
     all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
     all_data.set_index(['Date'], inplace=True)
-    print(all_data)
     all_data['TAVG'] = (all_data['TMAX'] + all_data['TMIN']) / 2
-    print(all_data)
-    if 2016 % 4 == 0:
-        heat_norms = df_norms
-    else:
-        heat_norms = df_norms.drop(df_norms.index[59])
-   
-    heat_norms[2] = pd.to_datetime(heat_norms[2])
-    heat_norms.set_index([2], inplace=True)
-    heat_norms = heat_norms.drop([0,1], axis=1)
-    print(heat_norms)
-    heat_norms_new = pd.DataFrame()
-    heat_norms_new['TMAX_AVG'] = heat_norms[3].resample('M').mean()
-    heat_norms_new['TMIN_AVG'] = heat_norms[4].resample('M').mean()
-    heat_norms_new['TAVG_AVG'] = heat_norms[5].resample('M').mean()
-    print(heat_norms_new)
-    # heat_norms_new['TAVG'] = all_data['Theat_norms[5].resample('M').mean()
+
+    new_all_data = pd.DataFrame()
+    new_all_data['TMAX'] = all_data['TMAX'].resample('M').mean()
+    new_all_data['TMIN'] = all_data['TMIN'].resample('M').mean()
+    new_all_data['TAVG'] = all_data['TAVG'].resample('M').mean()
+    # print(new_all_data)
+    df_normals = pd.read_json(normals)
+    df_normals[2] = pd.to_datetime(df_normals[2], unit='ms')
+    df_normals.set_index([2], inplace=True)
+
+    heat_norms = pd.DataFrame()
+    heat_norms['TMAX_AVG'] = df_normals[3].resample('M').mean()
+    heat_norms['TMIN_AVG'] = df_normals[4].resample('M').mean()
+    heat_norms['TAVG_AVG'] = df_normals[5].resample('M').mean()
+  
+    res = pd.merge(new_all_data.assign(grouper=new_all_data.index.month),
+                   heat_norms.assign(grouper=heat_norms.index.month),
+                   how='left', on='grouper')
+    print(res)
+    res['TMAX_DIFF'] = res['TMAX'] - res['TMAX_AVG']
+    res['TMIN_DIFF'] = res['TMIN'] - res['TMIN_AVG']
+    res['TAVG_DIFF'] = res['TAVG'] - res['TAVG_AVG']
+    print(res)
+    # normal_max_diff = year_param_max - filtered_year['MXNRM']
+
+    # colorscale_max = ((((normal_max_diff.max() - normal_max_diff.min()) - normal_max_diff.max()) / (normal_max_diff.max() - normal_max_diff.min())))
+    # 'colorscale': [[0, 'rgba(214, 39, 40, 0.85)'], 
+    #            [1, 'rgba(6,54,21, 0.85)']],
+    # print(res['TMAX'].max() - res('TMAX_AVG'))
+    # print(res['TMAX'].min())
+
+    colorscale_max = ((((res['TMAX_DIFF'].max()-res['TMAX_DIFF'].min()) - res['TMAX_DIFF'].max()) / (res['TMAX_DIFF'].max() - res['TMAX_DIFF'].min())))
+    colorscale_min = ((((res['TMIN_DIFF'].max()-res['TMIN_DIFF'].min()) - res['TMIN_DIFF'].max()) / (res['TMIN_DIFF'].max() - res['TMIN_DIFF'].min())))
+    colorscale_avg = ((((res['TAVG_DIFF'].max()-res['TAVG_DIFF'].min()) - res['TAVG_DIFF'].max()) / (res['TAVG_DIFF'].max() - res['TAVG_DIFF'].min())))
+    print(colorscale_max)
 
 
-    
-    
-    # all_data = all_data[all_data.index.month == (month_values.get(month))]
-    # print(all_data)
-    all_data['TMAX'] = all_data['TMAX'].resample('M').mean()
-    # print(all_data)
     if selected_value == 'TMAX':
         traces.append(go.Heatmap(
-                y=all_data.index.month,
-                x=all_data.index.year,
-                z=all_data['TMAX'],
-                colorscale=[[0, 'blue'],[.5, 'white'], [1, 'red']]
+                y=new_all_data.index.month,
+                x=new_all_data.index.year,
+                z=res['TMAX'] - res['TMAX_AVG'],
+                colorscale=[[0, 'blue'],[colorscale_max, 'white'], [1, 'red']]
             ))
-    # return(print(selected_product))
+    elif selected_value == 'TMIN':
+        traces.append(go.Heatmap(
+                y=new_all_data.index.month,
+                x=new_all_data.index.year,
+                z=res['TMIN'] - res['TMIN_AVG'],
+                colorscale=[[0, 'blue'],[colorscale_min, 'white'], [1, 'red']]
+            ))
+    elif selected_value == 'TAVG':
+        traces.append(go.Heatmap(
+                y=new_all_data.index.month,
+                x=new_all_data.index.year,
+                z=res['TAVG'] - res['TAVG_AVG'],
+                colorscale=[[0, 'blue'],[colorscale_avg, 'white'], [1, 'red']]
+            ))
     return {
         'data': traces,
         'layout': go.Layout(
@@ -260,25 +303,26 @@ def update_frs_heat_graph(selected_product):
                     options=[
                         {'label':'TMAX', 'value':'TMAX'},
                         {'label':'TMIN', 'value':'TMIN'},
+                        {'label':'TAVG', 'value':'TAVG'},
                     ],
                     labelStyle={'display':'inline'},
-                    value='TMAX'   
+                    # value='TMAX'   
                 ),
-                html.Div(['Select Year'], className='pretty_container'),
-                dcc.Dropdown(
-                    id='heat-year',
-                    options=[{'label': i, 'value': i} for i in range(1950,current_year + 1)],
-                    # option = [1,2,3]
-                    # labelStyle={'display':'inline'},
-                    # value='JAN'   
-                ),
-                html.Div(['Select Month'], className='pretty_container'),
-                dcc.Dropdown(
-                    id='heat-month',
-                    options=[{'label': i, 'value': i} for i in months],
-                    # labelStyle={'display':'inline'},
-                    value='JAN'   
-                ),
+                # html.Div(['Select Year'], className='pretty_container'),
+                # dcc.Dropdown(
+                #     id='heat-year',
+                #     options=[{'label': i, 'value': i} for i in range(1950,current_year + 1)],
+                #     # option = [1,2,3]
+                #     # labelStyle={'display':'inline'},
+                #     # value='JAN'   
+                # ),
+                # html.Div(['Select Month'], className='pretty_container'),
+                # dcc.Dropdown(
+                #     id='heat-month',
+                #     options=[{'label': i, 'value': i} for i in months],
+                #     # labelStyle={'display':'inline'},
+                #     value='JAN'   
+                # ),
             ])
         ],
             className='round1'
@@ -1099,12 +1143,13 @@ def rec_low_temps(selected_year):
     return rec_lows.to_json()
 
 @app.callback(Output('norms', 'children'),
-             [Input('year', 'value')])
-def norm_highs(selected_year):
-    if int(selected_year) % 4 == 0:
-        norms = df_norms
-    else:
-        norms = df_norms.drop(df_norms.index[59])
+             [Input('product', 'value')])
+def norm_highs(product):
+    norms = df_norms
+    # if int(selected_year) % 4 == 0:
+    #     norms = df_norms
+    # else:
+    #     norms = df_norms.drop(df_norms.index[59])
     return norms.to_json()
 
 @app.callback(
