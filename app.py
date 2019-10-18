@@ -205,7 +205,9 @@ def update_heat_map(all_data, selected_value, normals, selected_product):
     new_all_data['TMAX'] = all_data['TMAX'].resample('M').mean()
     new_all_data['TMIN'] = all_data['TMIN'].resample('M').mean()
     new_all_data['TAVG'] = all_data['TAVG'].resample('M').mean()
-    # print(new_all_data)
+    # new_all_data.index.dt.strftime('%b, %Y')
+    
+    print(new_all_data.index[0])
     df_normals = pd.read_json(normals)
     df_normals[2] = pd.to_datetime(df_normals[2], unit='ms')
     df_normals.set_index([2], inplace=True)
@@ -227,12 +229,14 @@ def update_heat_map(all_data, selected_value, normals, selected_product):
     colorscale_min = ((((res['TMIN_DIFF'].max()-res['TMIN_DIFF'].min()) - res['TMIN_DIFF'].max()) / (res['TMIN_DIFF'].max() - res['TMIN_DIFF'].min())))
     colorscale_avg = ((((res['TAVG_DIFF'].max()-res['TAVG_DIFF'].min()) - res['TAVG_DIFF'].max()) / (res['TAVG_DIFF'].max() - res['TAVG_DIFF'].min())))
 
+    months = ('JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC')
+
     if selected_value == 'TMAX':
         traces.append(go.Heatmap(
                 y=new_all_data.index.month,
                 x=new_all_data.index.year,
                 z=res['TMAX'] - res['TMAX_AVG'],
-                colorscale=[[0, 'blue'],[colorscale_max, 'white'], [1, 'red']]
+                colorscale=[[0, 'blue'],[colorscale_max, 'white'], [1, 'red']],
             ))
     elif selected_value == 'TMIN':
         traces.append(go.Heatmap(
@@ -251,9 +255,12 @@ def update_heat_map(all_data, selected_value, normals, selected_product):
     return {
         'data': traces,
         'layout': go.Layout(
-            # title='{} Departure From Norm'.format(param),
+            title='Departure From Norm',
             xaxis={'title':'YEAR'},
-            yaxis={'title':'MONTH'},
+            yaxis={'title':'MONTH','tickmode': 'array',
+            'tickvals': [2,4,6,8,10,12],
+            'ticktext': ['FEB', 'APR', 'JUN', 'AUG', 'OCT', 'DEC']},
+            
             # height= 400
         )
     }
@@ -279,7 +286,17 @@ def update_frs_heat_graph(selected_product):
                     labelStyle={'display':'inline'},
                     # value='TMAX'   
                 ),
+            ],
+                className='pretty_container'
+            ),
+            html.Div([
+                dcc.Markdown('''
+            Months arranged in columns JAN at bottom.  Colors represent magnitude of 
+            the departure of the mean monthly temperature from the mean monthly normal 
+            temperature.
+            '''),
             ])
+            
         ],
             className='round1'
         ),
