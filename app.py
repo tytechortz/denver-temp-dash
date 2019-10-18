@@ -189,25 +189,6 @@ app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
-# @app.callback(Output('cleaned-norms', 'children'),
-#               [Input('product', 'value')])
-# def make_clean_norms(selected_product):
-#     2016 % 4 == 0:
-#         heat_norms = df_norms
-#     else:
-#         heat_norms = df_norms.drop(df_norms.index[59])
-
-#     heat_norms[2] = pd.to_datetime(heat_norms[2])
-#     heat_norms.set_index([2], inplace=True)
-#     heat_norms_cleaned = heat_norms.drop([0,1], axis=1)
-#     print(heat_norms_cleaned)
-#     heat_norms_new = pd.DataFrame()
-#     heat_norms_new['TMAX_AVG'] = heat_norms_cleaned[3].resample('M').mean()
-#     heat_norms_new['TMIN_AVG'] = heat_norms_cleaned[4].resample('M').mean()
-#     heat_norms_new['TAVG_AVG'] = heat_norms_cleaned[5].resample('M').mean()
-
-#     return 
-
 @app.callback(Output('frs-heat', 'figure'),
             [Input('all-data', 'children'),
             Input('heat-param', 'value'),
@@ -242,20 +223,10 @@ def update_heat_map(all_data, selected_value, normals, selected_product):
     res['TMAX_DIFF'] = res['TMAX'] - res['TMAX_AVG']
     res['TMIN_DIFF'] = res['TMIN'] - res['TMIN_AVG']
     res['TAVG_DIFF'] = res['TAVG'] - res['TAVG_AVG']
-    print(res)
-    # normal_max_diff = year_param_max - filtered_year['MXNRM']
-
-    # colorscale_max = ((((normal_max_diff.max() - normal_max_diff.min()) - normal_max_diff.max()) / (normal_max_diff.max() - normal_max_diff.min())))
-    # 'colorscale': [[0, 'rgba(214, 39, 40, 0.85)'], 
-    #            [1, 'rgba(6,54,21, 0.85)']],
-    # print(res['TMAX'].max() - res('TMAX_AVG'))
-    # print(res['TMAX'].min())
-
+   
     colorscale_max = ((((res['TMAX_DIFF'].max()-res['TMAX_DIFF'].min()) - res['TMAX_DIFF'].max()) / (res['TMAX_DIFF'].max() - res['TMAX_DIFF'].min())))
     colorscale_min = ((((res['TMIN_DIFF'].max()-res['TMIN_DIFF'].min()) - res['TMIN_DIFF'].max()) / (res['TMIN_DIFF'].max() - res['TMIN_DIFF'].min())))
     colorscale_avg = ((((res['TAVG_DIFF'].max()-res['TAVG_DIFF'].min()) - res['TAVG_DIFF'].max()) / (res['TAVG_DIFF'].max() - res['TAVG_DIFF'].min())))
-    print(colorscale_max)
-
 
     if selected_value == 'TMAX':
         traces.append(go.Heatmap(
@@ -308,27 +279,11 @@ def update_frs_heat_graph(selected_product):
                     labelStyle={'display':'inline'},
                     # value='TMAX'   
                 ),
-                # html.Div(['Select Year'], className='pretty_container'),
-                # dcc.Dropdown(
-                #     id='heat-year',
-                #     options=[{'label': i, 'value': i} for i in range(1950,current_year + 1)],
-                #     # option = [1,2,3]
-                #     # labelStyle={'display':'inline'},
-                #     # value='JAN'   
-                # ),
-                # html.Div(['Select Month'], className='pretty_container'),
-                # dcc.Dropdown(
-                #     id='heat-month',
-                #     options=[{'label': i, 'value': i} for i in months],
-                #     # labelStyle={'display':'inline'},
-                #     value='JAN'   
-                # ),
             ])
         ],
             className='round1'
         ),
         
-
 @app.callback(Output('frs-bar-controls', 'children'),
              [Input('product', 'value'),
              Input('bar-control-container-style','value')])
@@ -383,7 +338,6 @@ def bar_container_styler(m_m):
     if temp == 'TMAX':
         return 'pretty_container'
     
-
 @app.callback(Output('frs-bar', 'figure'),
              [Input('all-data', 'children'),
              Input('input-range', 'value'),
@@ -418,7 +372,6 @@ def update_frs_graph(all_data, input_value, g_l, min_max):
         )
 
     return {'data': data, 'layout': layout}
-
 
 @app.callback(
     Output('graph-stats', 'children'),
@@ -531,6 +484,11 @@ def update_figure(temp_data, rec_highs, rec_lows, norms, selected_year, period):
     df_rh_cy = df_record_highs_ly[:len(temps_cy.index)]
 
     df_norms = pd.read_json(norms)
+    print(df_norms)
+    if selected_year % 4 == 0:
+        df_norms = df_norms
+    else:
+        df_norms = df_norms.drop(df_norms.index[59])
     df_norms_cy = df_norms[:len(temps_cy.index)]
     df_norms_py = df_norms[:31]
    
