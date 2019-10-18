@@ -193,25 +193,22 @@ app.config['suppress_callback_exceptions']=True
             [Input('all-data', 'children'),
             Input('heat-param', 'value'),
             Input('heat-month', 'value'),
+            Input('heat-year', 'value'),
             Input('product', 'value')])
-def update_heat_map(all_data, selected_value, month, selected_product):
-    print(selected_value)
+def update_heat_map(all_data, selected_value, month, selected_year, selected_product):
     traces = []
     month_values = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12}
     all_data = pd.read_json(all_data)
     all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
     all_data.set_index(['Date'], inplace=True)
-    print(all_data)
-    print(month_values.get(month))
-    # dr = dr[(dr.index.month == int(selected_date[5:7])) & (dr.index.day == int(selected_date[8:10]))]
     all_data = all_data[all_data.index.month == (month_values.get(month))]
-    # all_data = all_data[(all_data.index.month == 1)]
-    print(all_data)
+    # print(all_data)
+
 
     if selected_value == 'TMAX':
         traces.append(go.Heatmap(
-                y=all_data.index.month,
-                x=all_data.index.year,
+                y=all_data.index.year,
+                x=all_data.index.month,
                 z=all_data['TMAX'],
                 colorscale=[[0, 'blue'],[.5, 'white'], [1, 'red']]
             ))
@@ -227,7 +224,8 @@ def update_heat_map(all_data, selected_value, month, selected_product):
     }
 @app.callback(Output('frs-heat-controls', 'children'),
              [Input('product', 'value')])
-def update_frs_graph(selected_product):
+def update_frs_heat_graph(selected_product):
+
     months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
     if selected_product == 'frhm':
         return html.Div([
@@ -244,6 +242,14 @@ def update_frs_graph(selected_product):
                     labelStyle={'display':'inline'},
                     value='TMAX'   
                 ),
+                html.Div(['Select Year'], className='pretty_container'),
+                dcc.Dropdown(
+                    id='heat-year',
+                    options=[{'label': i, 'value': i} for i in range(1950,current_year + 1)],
+                    # option = [1,2,3]
+                    # labelStyle={'display':'inline'},
+                    # value='JAN'   
+                ),
                 html.Div(['Select Month'], className='pretty_container'),
                 dcc.Dropdown(
                     id='heat-month',
@@ -251,17 +257,6 @@ def update_frs_graph(selected_product):
                     # labelStyle={'display':'inline'},
                     value='JAN'   
                 ),
-                # html.Div(['Select Greater/Less Than'], className='pretty_container'),
-                
-                # html.Div(['Select Temperature'], className='pretty_container'),
-                # dcc.Input(
-                #     id='input-range',
-                #     type='number',
-                #     min=-30,
-                #     max=100,
-                #     step=5,
-                #     # value=90
-                # ),
             ])
         ],
             className='round1'
