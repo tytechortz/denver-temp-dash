@@ -195,20 +195,42 @@ app.config['suppress_callback_exceptions']=True
             Input('heat-month', 'value'),
             Input('heat-year', 'value'),
             Input('product', 'value')])
-def update_heat_map(all_data, selected_value, month, selected_year, selected_product):
+def update_heat_map(all_data, selected_value, month, selected_year,selected_product):
     traces = []
     month_values = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12}
     all_data = pd.read_json(all_data)
     all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
     all_data.set_index(['Date'], inplace=True)
-    all_data = all_data[all_data.index.month == (month_values.get(month))]
+    print(all_data)
+    all_data['TAVG'] = (all_data['TMAX'] + all_data['TMIN']) / 2
+    print(all_data)
+    if 2016 % 4 == 0:
+        heat_norms = df_norms
+    else:
+        heat_norms = df_norms.drop(df_norms.index[59])
+   
+    heat_norms[2] = pd.to_datetime(heat_norms[2])
+    heat_norms.set_index([2], inplace=True)
+    heat_norms = heat_norms.drop([0,1], axis=1)
+    print(heat_norms)
+    heat_norms_new = pd.DataFrame()
+    heat_norms_new['TMAX_AVG'] = heat_norms[3].resample('M').mean()
+    heat_norms_new['TMIN_AVG'] = heat_norms[4].resample('M').mean()
+    heat_norms_new['TAVG_AVG'] = heat_norms[5].resample('M').mean()
+    print(heat_norms_new)
+    # heat_norms_new['TAVG'] = all_data['Theat_norms[5].resample('M').mean()
+
+
+    
+    
+    # all_data = all_data[all_data.index.month == (month_values.get(month))]
     # print(all_data)
-
-
+    all_data['TMAX'] = all_data['TMAX'].resample('M').mean()
+    # print(all_data)
     if selected_value == 'TMAX':
         traces.append(go.Heatmap(
-                y=all_data.index.year,
-                x=all_data.index.month,
+                y=all_data.index.month,
+                x=all_data.index.year,
                 z=all_data['TMAX'],
                 colorscale=[[0, 'blue'],[.5, 'white'], [1, 'red']]
             ))
