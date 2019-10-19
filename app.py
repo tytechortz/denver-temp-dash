@@ -122,6 +122,12 @@ def get_layout():
                         ),
                     ],
                     ),
+                    html.Div([
+                        html.Div(id='fyma-stats'
+                        ),
+                    ],
+                    ),
+
 
                 ],
                     className='four columns'
@@ -260,8 +266,6 @@ def update_heat_map(all_data, selected_value, normals, selected_product):
             yaxis={'title':'MONTH','tickmode': 'array',
             'tickvals': [2,4,6,8,10,12],
             'ticktext': ['FEB', 'APR', 'JUN', 'AUG', 'OCT', 'DEC']},
-            
-            # height= 400
         )
     }
 
@@ -379,6 +383,84 @@ def update_frs_graph(all_data, input_value, g_l, min_max):
         )
 
     return {'data': data, 'layout': layout}
+
+@app.callback(
+    Output('fyma-stats', 'children'),
+    [Input('fyma-param','value'),
+    Input('all-data', 'children')])
+def display_graph_stats(selected_param, all_data):
+    fyma_temps = pd.read_json(all_data)
+    fyma_temps['Date'] = pd.to_datetime(fyma_temps['Date'], unit='ms')
+    fyma_temps.set_index(['Date'], inplace=True)
+    print(fyma_temps)
+    all_max_rolling = fyma_temps['TMAX'].dropna().rolling(window=1825)
+    all_max_rolling_mean = all_max_rolling.mean()
+    
+    all_min_rolling = fyma_temps['TMIN'].dropna().rolling(window=1825)
+    all_min_rolling_mean = all_min_rolling.mean()
+    print(type(all_max_rolling_mean))
+
+    max_max = all_max_rolling_mean.max().round(2)
+    max_index = all_max_rolling_mean.idxmax().strftime('%Y-%m-%d')
+    print(type(max_index))
+
+    if selected_param == 'TMAX':
+
+        return html.Div(
+                [
+                    html.Div([
+                        html.Div('MAX STATS', style={'text-align':'center'}),
+                        html.Div('{} on {}'.format(max_max, max_index ), style={'text-align': 'center'})
+                    ],
+                        className='round1'
+                    ),
+                        # html.Div([
+                        #     html.Div('Records', style={'text-align':'center'}),
+                        #     html.Div([
+                        #         html.Div([
+                        #             html.Div('High: {}'.format(rec_highs), style={'text-align': 'center', 'color':'red'}),
+                        #         ],
+                        #             className='six columns'
+                        #         ),
+                        #         html.Div([
+                        #             html.Div('Low: {}'.format(rec_lows), style={'text-align': 'center', 'color':'blue'})
+                        #         ],
+                        #             className='six columns'
+                        #         ),
+                        #     ],
+                        #         className='row'
+                        #     ),
+                        # ],
+                        #     className='round1'
+                        # ),
+                        # html.Div([
+                        #     html.Div('Days Above/Below Normal', style={'text-align':'center'}),
+                        #     html.Div([
+                        #         html.Div([
+                        #             html.Div('Above: {}'.format(days_abv_norm), style={'text-align': 'center', 'color':'red'}),
+                        #         ],
+                        #             className='six columns'
+                        #         ),
+                        #         html.Div([
+                        #             html.Div('Below: {}'.format(days_blw_norm), style={'text-align': 'center', 'color':'blue'})
+                        #         ],
+                        #             className='six columns'
+                        #         ),
+                        #     ],
+                        #         className='row'
+                        #     ),
+                        # ],
+                        #     className='round1'
+                        # ),
+                        # html.Div([
+                        #     html.Div('Degree Days Over/Under Normal', style={'text-align':'center'}),
+                        #     html.Div(html.Div('{:.0f} Degree Days'.format(degree_days), style={'text-align': 'center', 'color':color})),
+                        # ],
+                        #     className='round1'
+                        # ),     
+                ],
+                    className='round1'
+                ),
 
 @app.callback(
     Output('graph-stats', 'children'),
@@ -986,12 +1068,13 @@ def display_year_selector(product_value):
                     min = 1950, max = current_year
                 )
 
-@app.callback(Output('fyma-graph', 'figure'),
-             [Input('fyma-param', 'value'),
-             Input('df5', 'children'),
-             Input('max-trend', 'children'),
-             Input('min-trend', 'children'),
-             Input('all-data', 'children')])
+@app.callback(
+    Output('fyma-graph', 'figure'),
+    [Input('fyma-param', 'value'),
+    Input('df5', 'children'),
+    Input('max-trend', 'children'),
+    Input('min-trend', 'children'),
+    Input('all-data', 'children')])
 def update_fyma_graph(selected_param, df_5, max_trend, min_trend, all_data):
     fyma_temps = pd.read_json(all_data)
     fyma_temps['Date'] = pd.to_datetime(fyma_temps['Date'], unit='ms')
