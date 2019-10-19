@@ -410,7 +410,7 @@ def display_graph_stats(selected_param, all_data):
     min_min_index = all_max_rolling_mean.idxmin().strftime('%Y-%m-%d')
     max_min = all_min_rolling_mean.max().round(2)
     max_min_index = all_min_rolling_mean.idxmax().strftime('%Y-%m-%d')
-    
+    current_min = all_min_rolling_mean[-1].round(2)
     
     # print(type(max_index))
 
@@ -451,6 +451,12 @@ def display_graph_stats(selected_param, all_data):
                 [
                     html.Div([
                         html.Div('MIN STATS', style={'text-align':'center'}),
+                    ],
+                        className='round1'
+                    ),
+                    html.Div([
+                        html.Div('CURRENT VALUE', style={'text-align':'center'}),
+                        html.Div('{}'.format(current_min), style={'text-align': 'center'})
                     ],
                         className='round1'
                     ),
