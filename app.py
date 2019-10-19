@@ -404,11 +404,12 @@ def display_graph_stats(selected_param, all_data):
     max_max_index = all_max_rolling_mean.idxmax().strftime('%Y-%m-%d')
     min_max = all_max_rolling_mean.min().round(2)
     min_max_index = all_max_rolling_mean.idxmin().strftime('%Y-%m-%d')
+    current_max = all_max_rolling_mean[-1].round(2)
 
-    min_min = all_max_rolling_mean.max().round(2)
-    max_min_index = all_max_rolling_mean.idxmax().strftime('%Y-%m-%d')
-    min_min = all_max_rolling_mean.min().round(2)
-    max_min_index = all_max_rolling_mean.idxmin().strftime('%Y-%m-%d')
+    min_min = all_min_rolling_mean.min().round(2)
+    min_min_index = all_max_rolling_mean.idxmin().strftime('%Y-%m-%d')
+    max_min = all_min_rolling_mean.max().round(2)
+    max_min_index = all_min_rolling_mean.idxmax().strftime('%Y-%m-%d')
     
     
     # print(type(max_index))
@@ -424,6 +425,12 @@ def display_graph_stats(selected_param, all_data):
                         className='round1'
                     ),
                     html.Div([
+                        html.Div('CURRENT VALUE', style={'text-align':'center'}),
+                        html.Div('{}'.format(current_max), style={'text-align': 'center'})
+                    ],
+                        className='round1'
+                    ),
+                    html.Div([
                         html.Div('HIGH', style={'text-align':'center'}),
                         html.Div('{} on {}'.format(max_max, max_max_index ), style={'text-align': 'center'})
                     ],
@@ -435,56 +442,30 @@ def display_graph_stats(selected_param, all_data):
                     ],
                         className='round1'
                     ),
-                    # html.Div([
-                    #     html.Div('CHANGE', style={'text-align':'center'}),
-                    #     html.Div('{} on {}'.format(min_max, max_min_index ), style={'text-align': 'center'})
-                    # ],
-                    #     className='round1'
-                    # ),
-                        # html.Div([
-                        #     html.Div('Records', style={'text-align':'center'}),
-                        #     html.Div([
-                        #         html.Div([
-                        #             html.Div('High: {}'.format(rec_highs), style={'text-align': 'center', 'color':'red'}),
-                        #         ],
-                        #             className='six columns'
-                        #         ),
-                        #         html.Div([
-                        #             html.Div('Low: {}'.format(rec_lows), style={'text-align': 'center', 'color':'blue'})
-                        #         ],
-                        #             className='six columns'
-                        #         ),
-                        #     ],
-                        #         className='row'
-                        #     ),
-                        # ],
-                        #     className='round1'
-                        # ),
-                        # html.Div([
-                        #     html.Div('Days Above/Below Normal', style={'text-align':'center'}),
-                        #     html.Div([
-                        #         html.Div([
-                        #             html.Div('Above: {}'.format(days_abv_norm), style={'text-align': 'center', 'color':'red'}),
-                        #         ],
-                        #             className='six columns'
-                        #         ),
-                        #         html.Div([
-                        #             html.Div('Below: {}'.format(days_blw_norm), style={'text-align': 'center', 'color':'blue'})
-                        #         ],
-                        #             className='six columns'
-                        #         ),
-                        #     ],
-                        #         className='row'
-                        #     ),
-                        # ],
-                        #     className='round1'
-                        # ),
-                        # html.Div([
-                        #     html.Div('Degree Days Over/Under Normal', style={'text-align':'center'}),
-                        #     html.Div(html.Div('{:.0f} Degree Days'.format(degree_days), style={'text-align': 'center', 'color':color})),
-                        # ],
-                        #     className='round1'
-                        # ),     
+                ],
+                    className='round1'
+                ),
+    elif selected_param == 'TMIN':
+
+        return html.Div(
+                [
+                    html.Div([
+                        html.Div('MIN STATS', style={'text-align':'center'}),
+                    ],
+                        className='round1'
+                    ),
+                    html.Div([
+                        html.Div('LOW', style={'text-align':'center'}),
+                        html.Div('{} on {}'.format(min_min, min_min_index ), style={'text-align': 'center'})
+                    ],
+                        className='round1'
+                    ),
+                    html.Div([
+                        html.Div('HIGH', style={'text-align':'center'}),
+                        html.Div('{} on {}'.format(max_min, max_min_index ), style={'text-align': 'center'})
+                    ],
+                        className='round1'
+                    ),
                 ],
                     className='round1'
                 ),
