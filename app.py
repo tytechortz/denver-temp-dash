@@ -401,8 +401,17 @@ def display_graph_stats(selected_param, all_data):
     print(type(all_max_rolling_mean))
 
     max_max = all_max_rolling_mean.max().round(2)
-    max_index = all_max_rolling_mean.idxmax().strftime('%Y-%m-%d')
-    print(type(max_index))
+    max_max_index = all_max_rolling_mean.idxmax().strftime('%Y-%m-%d')
+    min_max = all_max_rolling_mean.min().round(2)
+    min_max_index = all_max_rolling_mean.idxmin().strftime('%Y-%m-%d')
+
+    min_min = all_max_rolling_mean.max().round(2)
+    max_min_index = all_max_rolling_mean.idxmax().strftime('%Y-%m-%d')
+    min_min = all_max_rolling_mean.min().round(2)
+    max_min_index = all_max_rolling_mean.idxmin().strftime('%Y-%m-%d')
+    
+    
+    # print(type(max_index))
 
     if selected_param == 'TMAX':
 
@@ -410,10 +419,28 @@ def display_graph_stats(selected_param, all_data):
                 [
                     html.Div([
                         html.Div('MAX STATS', style={'text-align':'center'}),
-                        html.Div('{} on {}'.format(max_max, max_index ), style={'text-align': 'center'})
+                        # html.Div('{} on {}'.format(max_max, max_index ), style={'text-align': 'center'})
                     ],
                         className='round1'
                     ),
+                    html.Div([
+                        html.Div('HIGH', style={'text-align':'center'}),
+                        html.Div('{} on {}'.format(max_max, max_max_index ), style={'text-align': 'center'})
+                    ],
+                        className='round1'
+                    ),
+                    html.Div([
+                        html.Div('LOW', style={'text-align':'center'}),
+                        html.Div('{} on {}'.format(min_max, min_max_index ), style={'text-align': 'center'})
+                    ],
+                        className='round1'
+                    ),
+                    # html.Div([
+                    #     html.Div('CHANGE', style={'text-align':'center'}),
+                    #     html.Div('{} on {}'.format(min_max, max_min_index ), style={'text-align': 'center'})
+                    # ],
+                    #     className='round1'
+                    # ),
                         # html.Div([
                         #     html.Div('Records', style={'text-align':'center'}),
                         #     html.Div([
