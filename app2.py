@@ -72,16 +72,7 @@ def get_layout():
                 html.Div([
                     html.Div([
                         html.Div(
-                            id='year-picker'
-                        ),
-                        html.Div(
-                            id='fyma-params'
-                        ),
-                        # html.Div(
-                        #     id='date-picker'
-                        # ),
-                        html.Div(
-                            id='climate-day-params'
+                            id='params'
                         ),
                     ],
                         className='twelve columns'
@@ -92,6 +83,41 @@ def get_layout():
             ],
                 className='pretty_container', style={'height': '25px'}
             ),
+            html.Div([
+                html.Div([
+                    html.Div(
+                        id='graph'
+                    ),
+                ],
+                    className='eight columns'
+                ),
+                html.Div([
+                    html.Div([
+                        html.Div(id='graph-stats'
+                        ),
+                    ],
+                    ),
+                    html.Div([
+                        html.Div(id='frs-bar-controls'
+                        ),
+                    ],
+                    ),
+                    html.Div([
+                        html.Div(id='frs-heat-controls'
+                        ),
+                    ],
+                    ),
+                    html.Div([
+                        html.Div(id='fyma-stats'
+                        ),
+                    ],
+                    ),
+                ],
+                    className='four columns'
+                ),    
+            ],
+                className='row'
+            ),
         ]
     )
 
@@ -100,9 +126,22 @@ app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
 @app.callback(
-    Output('year-picker', 'children'),
+    Output('graph', 'children'),
     [Input('product', 'value')])
-def display_year_selector(product_value):
+def display_graph(value):
+    if value == 'temp-graph':
+        return dcc.Graph(id='graph1')
+    elif value == 'fyma-graph':
+        return dcc.Graph(id='fyma-graph')
+    elif value == 'frbg':
+        return dcc.Graph(id='frs-bar')
+    elif value == 'frhm':
+        return dcc.Graph(id='frs-heat')
+
+@app.callback(
+    Output('params', 'children'),
+    [Input('product', 'value')])
+def display_param_row(product_value):
     if product_value == 'temp-graph':
         return html.Div([
             html.Div([
