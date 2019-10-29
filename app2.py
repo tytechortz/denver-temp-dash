@@ -77,11 +77,14 @@ def get_layout():
                         html.Div(
                             id='fyma-params'
                         ),
+                        # html.Div(
+                        #     id='date-picker'
+                        # ),
                         html.Div(
-                            id='date-picker'
+                            id='climate-day-params'
                         ),
                     ],
-                        className='four columns'
+                        className='twelve columns'
                     ),
                 ],
                     className='row'
@@ -97,37 +100,15 @@ app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
 
 @app.callback(
-    Output('date-picker', 'children'),
-    [Input('product', 'value')])
-    # Input('year', 'value')])
-def display_date_selector(product_value):
-    if product_value == 'climate-for-day':
-        return  html.Div([
-            html.Div([
-                html.P('Select Date (MM-DD)'),
-            ],
-                className='six columns'
-            ),
-             dcc.DatePickerSingle(
-                    id='date',
-                    display_format='MM-DD',
-                    date=today
-            )
-        ],
-            className='row'
-        ),
-        
-
-@app.callback(
     Output('year-picker', 'children'),
     [Input('product', 'value')])
 def display_year_selector(product_value):
     if product_value == 'temp-graph':
         return html.Div([
             html.Div([
-                html.P('Enter Year (YYYY)'),
+                html.P('Enter Year (YYYY):'),
             ],
-                className='six columns'
+                className='two columns'
             ),
             dcc.Input(
                 id = 'year',
@@ -152,6 +133,38 @@ def display_year_selector(product_value):
                 )
         ],
         ),
+    elif product_value == 'climate-for-day':
+        return html.Div([
+            html.Div([
+                dcc.RadioItems(
+                    id = 'temp-param',
+                    options = [
+                        {'label':'Max Temp', 'value':'TMAX'},
+                        {'label':'Min Temp', 'value':'TMIN'},
+                        {'label':'Temp Range', 'value':'RANGE'},
+                    ],
+                    # value = 'TMAX',
+                    labelStyle = {'display':'inline-block'}
+                ),
+            ],
+                className='four columns'
+            ),
+            html.Div([
+                html.P('Select Date (MM-DD):'),
+            ],
+                className='two columns'
+            ),
+            html.Div([
+                dcc.DatePickerSingle(
+                    id='date',
+                    display_format='MM-DD',
+                    date=today
+                )
+            ]),
+        ],
+            className='row'
+        ),
+
 
 if __name__ == "__main__":
     app.run_server(port=8025, debug=False)
