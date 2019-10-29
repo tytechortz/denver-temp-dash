@@ -778,11 +778,11 @@ def max_stats(product, d_max_max, admaxh, d_min_max):
         ),
 
 @app.callback(
-            Output('daily-min-t', 'children'),
-            [Input('product', 'value'),
-            Input('d-min-min', 'children'),
-            Input('avg-of-dly-lows', 'children'),
-            Input('d-max-min', 'children')])
+    Output('daily-min-t', 'children'),
+    [Input('product', 'value'),
+    Input('d-min-min', 'children'),
+    Input('avg-of-dly-lows', 'children'),
+    Input('d-max-min', 'children')])
 def min_stats(product, d_min_min, adminl, d_max_min):
     dly_min_min = d_min_min
     adminl = adminl
