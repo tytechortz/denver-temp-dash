@@ -127,8 +127,6 @@ def get_layout():
                         ),
                     ],
                     ),
-
-
                 ],
                     className='four columns'
                 ),    
