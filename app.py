@@ -12,8 +12,11 @@ import numpy as np
 from numpy import arange,array,ones
 from scipy import stats 
 import psycopg2
+from sqlalchemy import create_engine
 
 df_all_temps = pd.DataFrame(all_temps,columns=['dow','sta','Date','TMAX','TMIN'])
+last_day = df_all_temps.iloc[-1, 2] + timedelta(days=1)
+ld = last_day.strftime("%Y-%m-%d")
 
 df_norms = pd.DataFrame(norm_records)
 
@@ -84,7 +87,14 @@ def get_layout():
                     ),
                 ],
                     className='four columns',
-                ),  
+                ),
+                html.Div([
+                    html.Button('Update Data', id='data-button'),
+                ]),
+                html.Div([
+                    html.Div(id='output-data-button')
+                ]),
+
             ],
                 className='row'
             ),
@@ -191,6 +201,24 @@ def get_layout():
 app = dash.Dash(__name__)
 app.layout = get_layout
 app.config['suppress_callback_exceptions']=True
+
+@app.callback(Output('output-data-button', 'children'),
+             [Input('data-button', 'n_clicks')])
+def update_data(n_clicks):
+
+    temperatures = pd.read_csv('https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=TMAX,TMIN&stations=USW00023062&startDate=' + ld + '&endDate=' + today + '&units=standard')
+
+    print(temperatures)
+
+    most_recent_data_date = last_day - timedelta(days=1)
+    mrd = most_recent_data_date.strftime("%Y-%m-%d")
+
+
+    print(most_recent_data_date)
+    engine = create_engine('postgresql://postgres:1234@localhost:5432/denver_temps')
+    temperatures.to_sql('temps', engine, if_exists='append')
+
+    # return "Data Through {}".format(mrd)
 
 @app.callback(Output('frs-heat', 'figure'),
             [Input('all-data', 'children'),
