@@ -253,6 +253,7 @@ def update_fyma_graph(selected_param, df_5, max_trend, min_trend, all_data):
     fyma_temps.set_index(['Date'], inplace=True)
 
     df_5 = pd.read_json(df_5)
+    print(df_5)
 
     all_max_temp_fit = pd.DataFrame(max_trend)
     all_max_temp_fit.index = df_5.index

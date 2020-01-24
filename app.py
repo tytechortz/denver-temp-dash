@@ -21,6 +21,7 @@ ld = last_day.strftime("%Y-%m-%d")
 df_norms = pd.DataFrame(norm_records)
 
 df_rec_lows = pd.DataFrame(rec_lows)
+# print(rec_lows)
 
 df_rec_highs = pd.DataFrame(rec_highs)
 
@@ -157,7 +158,7 @@ def get_layout():
                             id='bar'
                         ),
                     ],
-                    className='twelve columns'
+                        className='twelve columns'
                     ),
                 ],
                     className='seven columns'
@@ -208,13 +209,13 @@ def update_data(n_clicks):
 
     temperatures = pd.read_csv('https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=TMAX,TMIN&stations=USW00023062&startDate=' + ld + '&endDate=' + today + '&units=standard')
 
-    print(temperatures)
+    # print(temperatures)
 
     most_recent_data_date = last_day - timedelta(days=1)
     mrd = most_recent_data_date.strftime("%Y-%m-%d")
 
 
-    print(most_recent_data_date)
+    # print(most_recent_data_date)
     engine = create_engine('postgresql://postgres:1234@localhost:5432/denver_temps')
     temperatures.to_sql('temps', engine, if_exists='append')
 
@@ -385,7 +386,7 @@ def update_frs_graph(all_data, input_value, g_l, min_max):
     all_data = pd.read_json(all_data)
     all_data['Date'] = pd.to_datetime(all_data['Date'], unit='ms')
     all_data.set_index(['Date'], inplace=True)
-    print(all_data)
+    # print(all_data)
     if g_l == '>=':
         df = all_data.loc[all_data[min_max]>=input_value]
     else:
@@ -415,10 +416,10 @@ def update_frs_graph(all_data, input_value, g_l, min_max):
     [Input('product', 'value')])
 def fyma_stuff(product):
     if product == 'fyma-graph':
-        return html.Div(id='fyma-max-stats')
+        return html.Div(id='fyma-max-or-min-stats')
 
 @app.callback(
-    Output('fyma-max-stats', 'children'),
+    Output('fyma-max-or-min-stats', 'children'),
     [Input('fyma-param', 'value'),
     Input('all-data', 'children')])
 def display_fyma_stats(selected_param, all_data):
@@ -520,6 +521,7 @@ def display_graph_stats(temps, selected_product):
     temps = pd.read_json(temps)
     temps.index = pd.to_datetime(temps.index, unit='ms')
     temps = temps[np.isfinite(temps['TMAX'])]
+    print(temps)
     day_count = temps.shape[0]
     rec_highs = len(temps[temps['TMAX'] == temps['rh']])
     rec_lows = len(temps[temps['TMIN'] == temps['rl']])
