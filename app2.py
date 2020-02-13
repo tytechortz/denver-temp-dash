@@ -15,6 +15,7 @@ import psycopg2
 
 df_all_temps = pd.DataFrame(all_temps,columns=['dow','sta','Date','TMAX','TMIN'])
 
+
 df_norms = pd.DataFrame(norm_records)
 
 df_rec_lows = pd.DataFrame(rec_lows)
